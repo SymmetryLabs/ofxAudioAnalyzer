@@ -1,5 +1,8 @@
 #include "ofApp.h"
 
+
+
+
 //--------------------------------------------------------------
 void ofApp::setup(){
     
@@ -7,26 +10,59 @@ void ofApp::setup(){
     ofSetFrameRate(60);
     
     sampleRate = 44100;
-    bufferSize = 512;
+    bufferSize = 512; //careful, as nomenclature changed from size to frames where size=frames*channel_count
     int channels = 1;
     
     audioAnalyzer.setup(sampleRate, bufferSize, channels);
     
-    player.load("beatTrack.wav");
+    //player.load("beatTrack.wav");
+    
+    
     
     gui.setup();
     gui.setPosition(20, 150);
     gui.add(smoothing.setup  ("Smoothing", 0.0, 0.0, 1.0));
-   
-}
+    
+    //----------------Make Buffers for the audio
+    int nOutputChannels=0;
+    int nInputChannels=1;
+    int nBuffers=4;
+    int numFrames=512;
+    MonoAudioInput = new short[bufferSize]; //two channels
+    soundBuffer = ofSoundBuffer( MonoAudioInput, numFrames, nInputChannels, (unsigned int) sampleRate);
+    for (int i = 0; i<bufferSize; i++) {
+        MonoAudioInput[i] = 0;
+    }
+    
+    left.assign(bufferSize, 0.0);
+    right.assign(bufferSize, 0.0);
+    bufferCounter	= 0;
+    
+    
+    
+    //----------------Setup the Sound Stream
+    //ofSoundStreamSetup(0, 2, 44100, 256, 4);
+    //ofSoundStreamSettings settings; this approach was deprecated
 
+    soundStream.setup(this, nOutputChannels, nInputChannels, sampleRate, bufferSize, nBuffers);
+
+    //----------------Connect the Sound Stream to an Input Device
+    soundStream.printDeviceList();
+    std::vector<ofSoundDevice> devices;
+    devices = soundStream.getMatchingDevices("default");
+    if(!devices.empty()){
+            soundStream.setDeviceID(devices[0].deviceID);
+    }
+// The audio analyzer accepts the soundBuffer Object.
+}
 //--------------------------------------------------------------
 void ofApp::update(){
     
     ofSetWindowTitle(ofToString(ofGetFrameRate()));
     
     //-:Get buffer from sound player:
-    soundBuffer = player.getCurrentSoundBuffer(bufferSize);
+    //soundBuffer = player.getCurrentSoundBuffer(bufferSize);
+    soundBuffer =soundStream.getSoundStream() ofSoundStreamStart();
     
     //-:ANALYZE SOUNDBUFFER:
     audioAnalyzer.analyze(soundBuffer);
@@ -309,40 +345,66 @@ void ofApp::draw(){
 
 //--------------------------------------------------------------
 void ofApp::keyPressed(int key){
-    player.stop();
+    /*player.stop();
+    soundStream.stop();
+
     switch (key) {
-       
+        case '0':
+            soundStream.start();
+            break;
         case '1':
             player.load("test440mono.wav");
+                player.play();
             break;
         case '2':
             player.load("flute.wav");
+                player.play();
             break;
         case '3':
             player.load("chord.wav");
+                player.play();
             break;
         case '4':
             player.load("cadence.wav");
+                player.play();
             break;
         case '5':
             player.load("beatTrack.wav");
+                player.play();
             break;
         case '6':
             player.load("noise.wav");
+                player.play();
             break;
             
             
         default:
             break;
     }
-    player.play();
+*/
     
 }
 //--------------------------------------------------------------
 void ofApp::exit(){
     audioAnalyzer.exit();
-    player.stop();
+    //player.stop();
+    ofSoundStreamStop();
+    ofSoundStreamClose();
 }
+
+//-----------------------Audio Stream Classes--------------------------
+
+
+void ofApp::audioIn( float * input, int bufferSize, int nChannels ) {
+//void ofApp::audioIn(ofSoundBuffer & input);
+    short x;
+    for (int i = 0; i<bufferSize; i++) {
+        MonoAudioInput[i] = (short) input[i];
+     }
+    
+}
+
+
 //--------------------------------------------------------------
 void ofApp::keyReleased(int key){
 

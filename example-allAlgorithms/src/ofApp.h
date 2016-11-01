@@ -8,7 +8,9 @@
 class ofApp : public ofBaseApp{
 
 	public:
-		void setup();
+
+    
+        void setup();
 		void update();
 		void draw();
         void exit();
@@ -31,7 +33,18 @@ class ofApp : public ofBaseApp{
         int sampleRate;
         int bufferSize;
     
+        //Added for Sound Stream
+        ofSoundStream soundStream;
         ofSoundBuffer soundBuffer;
+        void audioIn( float * input, int bufferSize, int nChannels );
+        //void audioIn(ofSoundBuffer & input);//added for audio streaming
+        void audioOut(); //added for audio streaming
+        short * MonoAudioInput;
+        // vector <float> MonoAudioInput;
+
+    vector <float> left;
+    vector <float> right;
+    int 	bufferCounter;
     
         float rms;
         float power;
