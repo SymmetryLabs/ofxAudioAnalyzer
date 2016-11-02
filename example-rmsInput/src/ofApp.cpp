@@ -63,6 +63,9 @@ void ofApp::update(){
     tristimulus = audioAnalyzer.getValues(TRISTIMULUS, 0, smoothing);
     
     isOnset = audioAnalyzer.getOnsetValue(0);
+    
+    std::cout<<"centroidNorm:"<<centroidNorm<<endl ;
+    std::cout<<"rms:"<<rms<<endl ;
 }
 
 //--------------------------------------------------------------
