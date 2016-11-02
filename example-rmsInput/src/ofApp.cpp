@@ -124,6 +124,20 @@ void ofApp::update(){
     
     std::cout<<"centroidNorm:"<<centroidNorm<<endl ;
     std::cout<<"rms:"<<rms<<endl ;
+    
+    // Make  & Send OSC Object
+    pkt.startBundle();
+    pkt.addMessage(msg.init("/essentia/rms").pushFloat(rms));
+    pkt.addMessage(msg.init("/essentia/power").pushFloat(power));
+    pkt.addMessage(msg.init("/essentia/pitchFreq").pushFloat(pitchFreq));
+    pkt.endBundle();
+    if (pkt.isOk()) {
+        message=pkt.packetData();
+        size= pkt.packetSize();
+        client.send_osc(message, size);
+    }
+    msg.clear();
+    pkt.Reset();
 }
 
 //--------------------------------------------------------------
