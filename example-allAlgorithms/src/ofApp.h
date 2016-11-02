@@ -28,19 +28,18 @@ class ofApp : public ofBaseApp{
 		void gotMessage(ofMessage msg);
     
         ofxAudioAnalyzer audioAnalyzer;
-        ofSoundPlayerExtended player;
+        //ofSoundPlayerExtended player;
     
         int sampleRate;
         int bufferSize;
     
         //Added for Sound Stream
         ofSoundStream soundStream;
-        ofSoundBuffer soundBuffer;
-        void audioIn( float * input, int bufferSize, int nChannels );
+
+       // void audioIn( float * input, int bufferSize, int nChannels );
+        void audioIn( ofSoundBuffer & input );
         //void audioIn(ofSoundBuffer & input);//added for audio streaming
         void audioOut(); //added for audio streaming
-        short * MonoAudioInput;
-        // vector <float> MonoAudioInput;
 
     vector <float> left;
     vector <float> right;
@@ -68,10 +67,6 @@ class ofApp : public ofBaseApp{
         float strongPeakNorm;
         float strongDecay;
         float strongDecayNorm;
-    
-    
-    
-    
     
         vector<float> spectrum;
         vector<float> melBands;

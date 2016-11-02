@@ -24,7 +24,7 @@ void ofApp::setup(){
     gui.add(smoothing.setup  ("Smoothing", 0.0, 0.0, 1.0));
     
     //----------------Make Buffers for the audio
-    int nOutputChannels=0;
+    /*int nOutputChannels=0;
     int nInputChannels=1;
     int nBuffers=4;
     int numFrames=512;
@@ -38,13 +38,20 @@ void ofApp::setup(){
     right.assign(bufferSize, 0.0);
     bufferCounter	= 0;
     
-    
+    */
     
     //----------------Setup the Sound Stream
-    //ofSoundStreamSetup(0, 2, 44100, 256, 4);
-    //ofSoundStreamSettings settings; this approach was deprecated
-
-    soundStream.setup(this, nOutputChannels, nInputChannels, sampleRate, bufferSize, nBuffers);
+    
+    //int sampleRate = 44100;
+    //int bufferSize = 512;
+    int outChannels = 0;
+    int inChannels = 1;
+    
+    // setup the sound stream
+    soundStream.setup(this, outChannels, inChannels, sampleRate, bufferSize, 4);
+    
+    //setup ofxAudioAnalyzer with the SAME PARAMETERS
+    audioAnalyzer.setup(sampleRate, bufferSize, inChannels);
 
     //----------------Connect the Sound Stream to an Input Device
     soundStream.printDeviceList();
@@ -54,19 +61,23 @@ void ofApp::setup(){
             soundStream.setDeviceID(devices[0].deviceID);
     }
 // The audio analyzer accepts the soundBuffer Object.
+    
+    soundStream.start();
 }
 //--------------------------------------------------------------
 void ofApp::update(){
     
     ofSetWindowTitle(ofToString(ofGetFrameRate()));
     
+    
+    /*
     //-:Get buffer from sound player:
-    //soundBuffer = player.getCurrentSoundBuffer(bufferSize);
-    soundBuffer =soundStream.getSoundStream() ofSoundStreamStart();
+    soundBuffer = player.getCurrentSoundBuffer(bufferSize);
     
     //-:ANALYZE SOUNDBUFFER:
     audioAnalyzer.analyze(soundBuffer);
-    
+    */
+     
     //-:get Values:
     rms     = audioAnalyzer.getValue(RMS, 0, smoothing);
     power   = audioAnalyzer.getValue(POWER, 0, smoothing);
@@ -102,7 +113,8 @@ void ofApp::update(){
     
     isOnset = audioAnalyzer.getOnsetValue(0);
   
-   
+    std::cout<<"centroidNorm:"<<centroidNorm<<endl ;
+    std::cout<<"rms:"<<rms<<endl ;
 }
 
 //--------------------------------------------------------------
@@ -395,13 +407,18 @@ void ofApp::exit(){
 //-----------------------Audio Stream Classes--------------------------
 
 
-void ofApp::audioIn( float * input, int bufferSize, int nChannels ) {
+//void ofApp::audioIn( float * input, int bufferSize, int nChannels ) {
 //void ofApp::audioIn(ofSoundBuffer & input);
-    short x;
-    for (int i = 0; i<bufferSize; i++) {
-        MonoAudioInput[i] = (short) input[i];
-     }
+//    short x;
+ //   for (int i = 0; i<bufferSize; i++) {
+  //      MonoAudioInput[i] = (short) input[i];
+   //  }
     
+//}
+
+void ofApp::audioIn(ofSoundBuffer &inBuffer){
+    //ANALYZE SOUNDBUFFER:
+    audioAnalyzer.analyze(inBuffer);
 }
 
 

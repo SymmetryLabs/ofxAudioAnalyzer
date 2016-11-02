@@ -3,6 +3,9 @@
 #include "ofMain.h"
 #include "ofxAudioAnalyzer.h"
 
+#include "ofSoundPlayerExtended.h"
+#include "ofxGui.h"
+
 class ofApp : public ofBaseApp{
 
 	public:
@@ -28,6 +31,41 @@ class ofApp : public ofBaseApp{
     
         float rms_l, rms_r;
         float smooth;
+    
+        float rms;
+        float power;
+        float pitchFreq;
+        float pitchFreqNorm;
+        float pitchConf;
+        float pitchSalience;
+        float hfc;
+        float hfcNorm;
+        float specComp;
+        float specCompNorm;
+        float centroid;
+        float centroidNorm;
+        float inharmonicity;
+        float dissonance;
+        float rollOff;
+        float rollOffNorm;
+        float oddToEven;
+        float oddToEvenNorm;
+        float strongPeak;
+        float strongPeakNorm;
+        float strongDecay;
+        float strongDecayNorm;
+    
+        vector<float> spectrum;
+        vector<float> melBands;
+        vector<float> mfcc;
+        vector<float> hpcp;
+    
+        vector<float> tristimulus;
+    
+        bool isOnset;
+    
+    
+        ofxFloatSlider smoothing;
     
 		
 };
