@@ -885,6 +885,9 @@
 					../../../addons/ofxAudioDecoder/libs/include/apple,
 					../../../addons/ofxAudioDecoder/libs/src,
 					../../../addons/ofxAudioDecoder/src,
+					../../../libs/boost/include,
+					"../../../addons/ASIO/asio-1.10.6/include",
+					../../../addons/OSCPKT/oscpkt,
 				);
 				ICON = "$(ICON_NAME_DEBUG)";
 				ICON_FILE = "$(ICON_FILE_PATH)$(ICON)";
@@ -944,6 +947,9 @@
 					../../../addons/ofxAudioDecoder/libs/include/apple,
 					../../../addons/ofxAudioDecoder/libs/src,
 					../../../addons/ofxAudioDecoder/src,
+					../../../libs/boost/include,
+					"../../../addons/ASIO/asio-1.10.6/include",
+					../../../addons/OSCPKT/oscpkt,
 				);
 				ICON = "$(ICON_NAME_RELEASE)";
 				ICON_FILE = "$(ICON_FILE_PATH)$(ICON)";

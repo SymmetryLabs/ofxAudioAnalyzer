@@ -1,4 +1,62 @@
 #include "ofApp.h"
+#include "asio.hpp"     //For socket integration
+#include "oscpkt.hh"    //For OSC Serialzation
+
+
+//---------------------Global Var: ASIO------------------------------------
+
+std::string s;
+using asio::ip::udp;
+asio::io_service io_service;
+#define PORT "1330"
+
+//---------------------Global Var: OSC-------------------------------------
+
+using namespace oscpkt;
+PacketWriter pkt;
+Message msg;
+const void * message;
+int size;
+
+//---------------------UDP Classes-----------------------------------------
+
+class UDPClient
+{
+public:
+    UDPClient(
+              asio::io_service& io_service,
+              const std::string& host,
+              const std::string& port
+              ) : io_service_(io_service), socket_(io_service, udp::endpoint(udp::v4(), 0)) {
+        udp::resolver resolver(io_service_);
+        udp::resolver::query query(udp::v4(), host, port);
+        udp::resolver::iterator iter = resolver.resolve(query);
+        endpoint_ = *iter;
+    }
+    
+    ~UDPClient()
+    {
+        socket_.close();
+    }
+    
+    void send(const std::string& msg) {
+        socket_.send_to(asio::buffer(msg, msg.size()), endpoint_);
+    }
+    
+    void send_osc(const void *msg, int size) {
+        socket_.send_to(asio::buffer(msg, size), endpoint_);
+    }
+    
+private:
+    asio::io_service& io_service_;
+    udp::socket socket_;
+    udp::endpoint endpoint_;
+};
+
+
+UDPClient client(io_service, "localhost", PORT);
+
+
 
 //--------------------------------------------------------------
 void ofApp::setup(){
