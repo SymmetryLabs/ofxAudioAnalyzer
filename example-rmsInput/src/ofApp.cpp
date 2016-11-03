@@ -8,7 +8,7 @@
 std::string s;
 using asio::ip::udp;
 asio::io_service io_service;
-#define PORT "1330"
+#define PORT "1331"
 
 //---------------------Global Var: OSC-------------------------------------
 
@@ -123,13 +123,34 @@ void ofApp::update(){
     isOnset = audioAnalyzer.getOnsetValue(0);
     
     std::cout<<"centroidNorm:"<<centroidNorm<<endl ;
-    std::cout<<"rms:"<<rms<<endl ;
+    std::cout<<"strongDecayNorm:"<<strongDecayNorm<<endl ;
     
     // Make  & Send OSC Object
     pkt.startBundle();
     pkt.addMessage(msg.init("/essentia/rms").pushFloat(rms));
     pkt.addMessage(msg.init("/essentia/power").pushFloat(power));
     pkt.addMessage(msg.init("/essentia/pitchFreq").pushFloat(pitchFreq));
+    pkt.addMessage(msg.init("/essentia/pitchConf").pushFloat(pitchConf));
+    pkt.addMessage(msg.init("/essentia/pitchSalience").pushFloat(pitchSalience));
+    pkt.addMessage(msg.init("/essentia/inharmonicity").pushFloat(inharmonicity));
+    pkt.addMessage(msg.init("/essentia/hfc").pushFloat(hfc));
+    pkt.addMessage(msg.init("/essentia/specComp").pushFloat(specComp));
+    pkt.addMessage(msg.init("/essentia/centroid").pushFloat(centroid));
+    pkt.addMessage(msg.init("/essentia/rollOff").pushFloat(rollOff));
+    pkt.addMessage(msg.init("/essentia/oddToEven").pushFloat(oddToEven));
+    pkt.addMessage(msg.init("/essentia/strongPeak").pushFloat(strongPeak));
+    pkt.addMessage(msg.init("/essentia/strongDecay").pushFloat(strongDecay));
+    //Normalized values for graphic meters:
+    pkt.addMessage(msg.init("/essentia/pitchFreqNorm").pushFloat(pitchFreqNorm));
+    pkt.addMessage(msg.init("/essentia/hfcNorm").pushFloat(hfcNorm));
+    pkt.addMessage(msg.init("/essentia/specCompNorm").pushFloat(specCompNorm));
+    pkt.addMessage(msg.init("/essentia/centroidNorm").pushFloat(centroidNorm));
+    pkt.addMessage(msg.init("/essentia/rollOffNorm").pushFloat(rollOffNorm));
+    pkt.addMessage(msg.init("/essentia/oddToEvenNorm").pushFloat(oddToEvenNorm));
+    pkt.addMessage(msg.init("/essentia/strongPeakNorm").pushFloat(strongPeakNorm));
+    pkt.addMessage(msg.init("/essentia/strongDecayNorm").pushFloat(strongDecayNorm));
+
+    
     pkt.endBundle();
     if (pkt.isOk()) {
         message=pkt.packetData();

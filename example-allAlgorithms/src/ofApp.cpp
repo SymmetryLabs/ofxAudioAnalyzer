@@ -79,6 +79,8 @@ void ofApp::update(){
     */
      
     //-:get Values:
+    
+    //  float
     rms     = audioAnalyzer.getValue(RMS, 0, smoothing);
     power   = audioAnalyzer.getValue(POWER, 0, smoothing);
     pitchFreq = audioAnalyzer.getValue(PITCH_FREQ, 0, smoothing);
@@ -92,7 +94,7 @@ void ofApp::update(){
     oddToEven = audioAnalyzer.getValue(ODD_TO_EVEN, 0, smoothing);
     strongPeak = audioAnalyzer.getValue(STRONG_PEAK, 0, smoothing);
     strongDecay = audioAnalyzer.getValue(STRONG_DECAY, 0, smoothing);
-    //Normalized values for graphic meters:
+    // float ... Normalized values for graphic meters:
     pitchFreqNorm   = audioAnalyzer.getValue(PITCH_FREQ, 0, smoothing, TRUE);
     hfcNorm     = audioAnalyzer.getValue(HFC, 0, smoothing, TRUE);
     specCompNorm = audioAnalyzer.getValue(SPECTRAL_COMPLEXITY, 0, smoothing, TRUE);
@@ -101,16 +103,16 @@ void ofApp::update(){
     oddToEvenNorm   = audioAnalyzer.getValue(ODD_TO_EVEN, 0, smoothing, TRUE);
     strongPeakNorm  = audioAnalyzer.getValue(STRONG_PEAK, 0, smoothing, TRUE);
     strongDecayNorm = audioAnalyzer.getValue(STRONG_DECAY, 0, smoothing, TRUE);
-    
     dissonance = audioAnalyzer.getValue(DISSONANCE, 0, smoothing);
     
+    //  vector<float>
     spectrum = audioAnalyzer.getValues(SPECTRUM, 0, smoothing);
     melBands = audioAnalyzer.getValues(MEL_BANDS, 0, smoothing);
     mfcc = audioAnalyzer.getValues(MFCC, 0, smoothing);
     hpcp = audioAnalyzer.getValues(HPCP, 0, smoothing);
-    
     tristimulus = audioAnalyzer.getValues(TRISTIMULUS, 0, smoothing);
     
+    //  bool
     isOnset = audioAnalyzer.getOnsetValue(0);
   
     std::cout<<"centroidNorm:"<<centroidNorm<<endl ;

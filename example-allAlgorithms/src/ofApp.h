@@ -72,7 +72,6 @@ class ofApp : public ofBaseApp{
         vector<float> melBands;
         vector<float> mfcc;
         vector<float> hpcp;
-    
         vector<float> tristimulus;
     
         bool isOnset;
