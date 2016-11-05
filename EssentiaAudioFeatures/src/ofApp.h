@@ -6,6 +6,16 @@
 #include "ofSoundPlayerExtended.h"
 #include "ofxGui.h"
 
+#include "ofxFilterbank.h"      //for filterbank
+
+//---- #defs for filterbank
+#define BANDWIDTH  1.0
+#define BUFFER_SIZE 512         //changed to 1024
+#define LIN2dB(x) (double)(20. * log10(x))
+#define SR 44100
+#define bufferSize 512
+
+
 class ofApp : public ofBaseApp{
 
 	public:
@@ -28,6 +38,7 @@ class ofApp : public ofBaseApp{
 
         ofSoundStream soundStream;
         ofxAudioAnalyzer audioAnalyzer;
+        ofxFilterbank filterBank; //for filterbank
     
         float rms_l, rms_r;
         float smooth;

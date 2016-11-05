@@ -65,7 +65,7 @@ void ofApp::setup(){
     ofSetFrameRate(60);
     
     int sampleRate = 44100;
-    int bufferSize = 512;
+    //int bufferSize = 512;
     int outChannels = 0;
     int inChannels = 2;
     
@@ -74,6 +74,24 @@ void ofApp::setup(){
     
     //setup ofxAudioAnalyzer with the SAME PARAMETERS
     audioAnalyzer.setup(sampleRate, bufferSize, inChannels);
+    
+    
+    
+    
+    //--------------filterbank setup
+    
+    ofSetVerticalSync(true);
+    ofBackground(54, 54, 54);
+    ofSetFrameRate(60);
+    
+    int ticksPerBuffer = 8;
+    
+    int midiMin = 21;
+    int midiMax = 108;
+    
+    filterBank.setup(bufferSize, midiMin, midiMax, inChannels, BANDWIDTH, sampleRate, 1.0);
+    filterBank.setColor(ofColor::orange);
+    
    
 }
 
@@ -164,7 +182,7 @@ void ofApp::update(){
 //--------------------------------------------------------------
 void ofApp::draw(){
     
-    ofSetColor(ofColor::cyan);
+   /* ofSetColor(ofColor::cyan);
     
     float xpos = ofGetWidth() *.5;
     float ypos = ofGetHeight() - ofGetHeight() * rms_r;
@@ -182,7 +200,65 @@ void ofApp::draw(){
                         "\nRMS Right: " + ofToString(rms_r) +
                         "\nSmoothing (mouse x): " + ofToString(smooth);
     
-    ofDrawBitmapString(infoString, 32, 579);
+    ofDrawBitmapString(infoString, 32, 579);*/
+    
+    ofSetColor(225);
+    ofNoFill();
+    
+    float chSz = bufferSize/3;
+    // draw the left input channel:
+    {
+        ofPushStyle();
+        ofPushMatrix();
+        ofTranslate(100, 15, 0);
+        ofSetColor(225);
+        ofDrawBitmapString("Left Channel", 4, 18);
+        ofSetLineWidth(1);
+        ofRect(0, 0, chSz, 200);
+        ofSetColor(ofColor::orange);
+        ofSetLineWidth(3);
+        ofBeginShape();
+        for (int i = 0; i < bufferSize; i++){
+            ofVertex(i/(bufferSize/chSz), 100 - filterBank.getLeftBuffer()[i]*45);
+        }
+        ofEndShape(false);
+        ofPopMatrix();
+        ofPopStyle();
+    }
+    // draw the right input channel:
+    {
+        ofPushStyle();
+        ofPushMatrix();
+        ofTranslate(200+chSz, 15, 0);
+        ofSetColor(225);
+        ofDrawBitmapString("Right Channel", 4, 18);
+        ofSetLineWidth(1);
+        ofRect(0, 0, chSz, 200);
+        ofSetColor(ofColor::orange);
+        ofSetLineWidth(3);
+        ofBeginShape();
+        for (int i = 0; i < bufferSize; i++){
+            ofVertex(i/(bufferSize/chSz), 100 - filterBank.getRightBuffer()[i]*45);
+        }
+        ofEndShape(false);
+        ofPopMatrix();
+        ofPopStyle();
+    }
+    
+    //Draw FilterBank
+    {
+        ofPushStyle();
+        ofPushMatrix();
+        ofTranslate (100,250,0);
+        filterBank.draw(800,400);
+        ofPopMatrix();
+        ofPopStyle();
+    }
+    ofSetColor(225);
+    
+    string reportString =  "Sampling Rate: "+ ofToString(SR) +"\nBuffer size: "+ ofToString(bufferSize);
+    ofDrawBitmapString(reportString, 10, 700);
+
 }
 //--------------------------------------------------------------
 void ofApp::audioIn(ofSoundBuffer &inBuffer){

@@ -25,6 +25,9 @@
 		C520D46D1DC968EB001E38D6 /* ofxSlider.cpp in Sources */ = {isa = PBXBuildFile; fileRef = C520D4621DC968EB001E38D6 /* ofxSlider.cpp */; };
 		C520D46E1DC968EB001E38D6 /* ofxSliderGroup.cpp in Sources */ = {isa = PBXBuildFile; fileRef = C520D4641DC968EB001E38D6 /* ofxSliderGroup.cpp */; };
 		C520D46F1DC968EB001E38D6 /* ofxToggle.cpp in Sources */ = {isa = PBXBuildFile; fileRef = C520D4661DC968EB001E38D6 /* ofxToggle.cpp */; };
+		C5D0E2281DCD5D2400566DD3 /* README.md in Sources */ = {isa = PBXBuildFile; fileRef = C5D0E2141DCD5D2400566DD3 /* README.md */; };
+		C5D0E2291DCD5D2400566DD3 /* fb_funcs.c in Sources */ = {isa = PBXBuildFile; fileRef = C5D0E2161DCD5D2400566DD3 /* fb_funcs.c */; };
+		C5D0E22A1DCD5D2400566DD3 /* ofxFilterbank.cpp in Sources */ = {isa = PBXBuildFile; fileRef = C5D0E2181DCD5D2400566DD3 /* ofxFilterbank.cpp */; };
 		E4328149138ABC9F0047C5CB /* openFrameworksDebug.a in Frameworks */ = {isa = PBXBuildFile; fileRef = E4328148138ABC890047C5CB /* openFrameworksDebug.a */; };
 		E4B69E200A3A1BDC003C02F2 /* main.cpp in Sources */ = {isa = PBXBuildFile; fileRef = E4B69E1D0A3A1BDC003C02F2 /* main.cpp */; };
 		E4B69E210A3A1BDC003C02F2 /* ofApp.cpp in Sources */ = {isa = PBXBuildFile; fileRef = E4B69E1E0A3A1BDC003C02F2 /* ofApp.cpp */; };
@@ -170,6 +173,11 @@
 		C520D4651DC968EB001E38D6 /* ofxSliderGroup.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ofxSliderGroup.h; sourceTree = "<group>"; };
 		C520D4661DC968EB001E38D6 /* ofxToggle.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = ofxToggle.cpp; sourceTree = "<group>"; };
 		C520D4671DC968EB001E38D6 /* ofxToggle.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ofxToggle.h; sourceTree = "<group>"; };
+		C5D0E2141DCD5D2400566DD3 /* README.md */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = net.daringfireball.markdown; path = README.md; sourceTree = "<group>"; };
+		C5D0E2161DCD5D2400566DD3 /* fb_funcs.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = fb_funcs.c; sourceTree = "<group>"; };
+		C5D0E2171DCD5D2400566DD3 /* fb_funcs.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = fb_funcs.h; sourceTree = "<group>"; };
+		C5D0E2181DCD5D2400566DD3 /* ofxFilterbank.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = ofxFilterbank.cpp; sourceTree = "<group>"; };
+		C5D0E2191DCD5D2400566DD3 /* ofxFilterbank.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ofxFilterbank.h; sourceTree = "<group>"; };
 		C6F7173179B0582341821886 /* asciidagparser.h */ = {isa = PBXFileReference; explicitFileType = sourcecode.c.h; fileEncoding = 30; name = asciidagparser.h; path = ../libs/essentia/include/essentia/utils/asciidagparser.h; sourceTree = SOURCE_ROOT; };
 		CC1124EB3965EB207BA23E35 /* tnt_fortran_array3d.h */ = {isa = PBXFileReference; explicitFileType = sourcecode.c.h; fileEncoding = 30; name = tnt_fortran_array3d.h; path = ../libs/essentia/include/essentia/utils/tnt/tnt_fortran_array3d.h; sourceTree = SOURCE_ROOT; };
 		CCE35F3002C147798EE8D808 /* sourceproxy.h */ = {isa = PBXFileReference; explicitFileType = sourcecode.c.h; fileEncoding = 30; name = sourceproxy.h; path = ../libs/essentia/include/essentia/streaming/sourceproxy.h; sourceTree = SOURCE_ROOT; };
@@ -437,6 +445,7 @@
 		BB4B014C10F69532006C3DED /* addons */ = {
 			isa = PBXGroup;
 			children = (
+				C5D0E1DB1DCD5D2400566DD3 /* ofxFilterbank */,
 				C520D4551DC968EB001E38D6 /* ofxGui */,
 				69EA4EEFE27955C695DB2D99 /* ofxAudioAnalyzer */,
 				E57BA9F5B131DD75E7F6B1AC /* ofxAudioDecoder */,
@@ -527,6 +536,26 @@
 				91E2B032BEA033142F255CD6 /* tnt_version.h */,
 			);
 			name = tnt;
+			sourceTree = "<group>";
+		};
+		C5D0E1DB1DCD5D2400566DD3 /* ofxFilterbank */ = {
+			isa = PBXGroup;
+			children = (
+				C5D0E2141DCD5D2400566DD3 /* README.md */,
+				C5D0E2151DCD5D2400566DD3 /* src */,
+			);
+			path = ofxFilterbank;
+			sourceTree = "<group>";
+		};
+		C5D0E2151DCD5D2400566DD3 /* src */ = {
+			isa = PBXGroup;
+			children = (
+				C5D0E2161DCD5D2400566DD3 /* fb_funcs.c */,
+				C5D0E2171DCD5D2400566DD3 /* fb_funcs.h */,
+				C5D0E2181DCD5D2400566DD3 /* ofxFilterbank.cpp */,
+				C5D0E2191DCD5D2400566DD3 /* ofxFilterbank.h */,
+			);
+			path = src;
 			sourceTree = "<group>";
 		};
 		DD25005F3FA39556C5A8B60D /* algorithms */ = {
@@ -692,6 +721,9 @@
 				C520D46F1DC968EB001E38D6 /* ofxToggle.cpp in Sources */,
 				1D397CC89DDD782F892B7483 /* ofxAudioAnalyzer.cpp in Sources */,
 				3CA17DE70B38CA2592D51E7D /* ofxAudioAnalyzerAlgorithms.cpp in Sources */,
+				C5D0E2281DCD5D2400566DD3 /* README.md in Sources */,
+				C5D0E2291DCD5D2400566DD3 /* fb_funcs.c in Sources */,
+				C5D0E22A1DCD5D2400566DD3 /* ofxFilterbank.cpp in Sources */,
 				2302BCF25C1D2BBFE43ADCE6 /* ofxAudioAnalyzerUnit.cpp in Sources */,
 				C520D46C1DC968EB001E38D6 /* ofxPanel.cpp in Sources */,
 				87EB71A35D524340AE0A8C4C /* ofxAudioDecoder.cpp in Sources */,
