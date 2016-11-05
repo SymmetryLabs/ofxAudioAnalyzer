@@ -264,6 +264,12 @@ void ofApp::draw(){
 void ofApp::audioIn(ofSoundBuffer &inBuffer){
     //ANALYZE SOUNDBUFFER:
     audioAnalyzer.analyze(inBuffer);
+
+    //Analyze Input Buffer with ofxFilterbank
+    vector <float> temp;
+    temp = inBuffer.getBuffer();
+    float *p = &temp[0];
+    filterBank.analyze(p);
 }
 
 //--------------------------------------------------------------
