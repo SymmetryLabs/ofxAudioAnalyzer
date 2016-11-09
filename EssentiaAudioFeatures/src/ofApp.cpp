@@ -167,7 +167,15 @@ void ofApp::update(){
     pkt.addMessage(msg.init("/essentia/oddToEvenNorm").pushFloat(oddToEvenNorm));
     pkt.addMessage(msg.init("/essentia/strongPeakNorm").pushFloat(strongPeakNorm));
     pkt.addMessage(msg.init("/essentia/strongDecayNorm").pushFloat(strongDecayNorm));
-
+    
+    float * polyphonic_pitch_pointer;
+    polyphonic_pitch_pointer=filterBank.getSmthEnergies();
+    
+    for(int n=filterBank.midiMinVar; n<filterBank.midiMaxVar; n++)
+    {
+        std::cout<<polyphonic_pitch_pointer[n]<<" ";
+    }
+    std::cout<<endl;
     
     pkt.endBundle();
     if (pkt.isOk()) {

@@ -75,10 +75,10 @@ void ofxFilterbank::analyze(float * iBuffer){
             float rOutsample = 0.0;
 
             lOutsample = reson(left[i], fdata[0][n]);
-            energies[n]  += lOutsample*lOutsample;
+            energies[n]  += 2*lOutsample*lOutsample;            //since buffer is 1/2 as long, mult by 2
             if (channels>1){
                 rOutsample = reson(right[i], fdata[1][n]);
-                energies[n] += rOutsample*rOutsample;
+                energies[n] += 2*rOutsample*rOutsample;         //since buffer is 1/2 as long, mult by 2
             }
         }
 	 }
