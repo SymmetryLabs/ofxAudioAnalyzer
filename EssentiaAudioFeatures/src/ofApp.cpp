@@ -131,14 +131,17 @@ void ofApp::update(){
     
     dissonance = audioAnalyzer.getValue(DISSONANCE, 0, smoothing);
     
+    //Vector Parameters
     spectrum = audioAnalyzer.getValues(SPECTRUM, 0, smoothing);
     melBands = audioAnalyzer.getValues(MEL_BANDS, 0, smoothing);
     mfcc = audioAnalyzer.getValues(MFCC, 0, smoothing);
     hpcp = audioAnalyzer.getValues(HPCP, 0, smoothing);
     tristimulus = audioAnalyzer.getValues(TRISTIMULUS, 0, smoothing);
     
+    //Boolean Parameter
     isOnset = audioAnalyzer.getOnsetValue(0);
     
+    //For Testing
     std::cout<<"centroidNorm:"<<centroidNorm<<endl ;
     std::cout<<"strongDecayNorm:"<<strongDecayNorm<<endl ;
     
@@ -173,31 +176,31 @@ void ofApp::update(){
     
     // Vector Parameters
     
-    int spectrum_size=spectrum.size();
+    int spectrum_size=spectrum.size(); //257
     pkt.addMessage(msg.init("/essentia/spectrum"));
     for(int n=0; n<spectrum_size; n++)
     {   msg.pushFloat(spectrum[n]);
     }
 
-    int melBands_size=melBands.size();
+    int melBands_size=melBands.size(); //24
     pkt.addMessage(msg.init("/essentia/melBands"));
     for(int n=0; n<melBands_size; n++)
     {   msg.pushFloat(melBands[n]);
     }
     
-    int mfcc_size=mfcc.size();
+    int mfcc_size=mfcc.size();  //13
     pkt.addMessage(msg.init("/essentia/mfcc"));
     for(int n=0; n<mfcc_size; n++)
     {   msg.pushFloat(mfcc[n]);
     }
     
-    int hpcp_size=hpcp.size();
+    int hpcp_size=hpcp.size();  //12
     pkt.addMessage(msg.init("/essentia/hpcp"));
     for(int n=0; n<hpcp_size; n++)
     {   msg.pushFloat(hpcp[n]);
     }
     
-    int tristimulus_size=tristimulus.size();
+    int tristimulus_size=tristimulus.size(); //3
     pkt.addMessage(msg.init("/essentia/tristimulus"));
     for(int n=0; n<tristimulus_size; n++)
     {   msg.pushFloat(tristimulus[n]);
@@ -212,7 +215,7 @@ void ofApp::update(){
     pkt.addMessage(msg.init("/essentia/PolyphonicPitch").pushFloat(log_smth_energy));
     std::cout<<"Midi Min= "<<filterBank.midiMinVar<<endl;
     std::cout<<"Midi Min= "<<filterBank.midiMaxVar<<endl;
-    for(int n=filterBank.midiMinVar+1; n<filterBank.midiMaxVar; n++)
+    for(int n=filterBank.midiMinVar+1; n<filterBank.midiMaxVar; n++)  // 88
     {   log_smth_energy = LIN2dB (polyphonic_pitch_pointer[n]);
         std::cout<<log_smth_energy<<" ";
         msg.pushFloat(log_smth_energy);
