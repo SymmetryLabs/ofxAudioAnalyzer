@@ -169,13 +169,21 @@ void ofApp::update(){
     pkt.addMessage(msg.init("/essentia/strongDecayNorm").pushFloat(strongDecayNorm));
     
     float * polyphonic_pitch_pointer;
+    float log_smth_energy;
     polyphonic_pitch_pointer=filterBank.getSmthEnergies();
     
-    for(int n=filterBank.midiMinVar; n<filterBank.midiMaxVar; n++)
-    {
-        std::cout<<polyphonic_pitch_pointer[n]<<" ";
+    log_smth_energy = LIN2dB (polyphonic_pitch_pointer[filterBank.midiMinVar]);
+    pkt.addMessage(msg.init("/essentia/PolyphonicPitch").pushFloat(log_smth_energy));
+    std::cout<<"Midi Min= "<<filterBank.midiMinVar<<endl;
+    std::cout<<"Midi Min= "<<filterBank.midiMaxVar<<endl;
+    for(int n=filterBank.midiMinVar+1; n<filterBank.midiMaxVar; n++)
+    {   log_smth_energy = LIN2dB (polyphonic_pitch_pointer[n]);
+        std::cout<<log_smth_energy<<" ";
+        msg.pushFloat(log_smth_energy);
     }
     std::cout<<endl;
+    
+    
     
     pkt.endBundle();
     if (pkt.isOk()) {

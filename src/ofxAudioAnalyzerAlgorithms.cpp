@@ -109,7 +109,7 @@ void ofxAABaseAlgorithm::compute(){
         algorithm->compute();
     }
 }
-//-------------------------------------------
+//-------------------------------------------/Users/mandalin/Documents/Repos/SymmetryLabsRepos/AudioFeatures/OpenFrameworks/of_v0.9.4_osx_release/addons/ofxAudioAnalyzer/EssentiaAudioFeatures/bin/EssentiaAudioFeaturesDebug.app
 void ofxAABaseAlgorithm::castValueToFloat(){
     if(isActivated)
         floatValue = (float) realValue;
