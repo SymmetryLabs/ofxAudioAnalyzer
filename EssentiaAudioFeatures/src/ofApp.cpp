@@ -1,6 +1,7 @@
 #include "ofApp.h"
 #include "asio.hpp"     //For socket integration
 #include "oscpkt.hh"    //For OSC Serialzation
+#include "ofxAubio.h"           //for aubio
 
 
 //---------------------Global Var: ASIO------------------------------------
@@ -69,13 +70,14 @@ void ofApp::setup(){
     int outChannels = 0;
     int inChannels = 2;
     
+    
+    //--------------essentia setup
+    
     // setup the sound stream
     soundStream.setup(this, outChannels, inChannels, sampleRate, bufferSize, 3);
     
     //setup ofxAudioAnalyzer with the SAME PARAMETERS
     audioAnalyzer.setup(sampleRate, bufferSize, inChannels);
-    
-    
     
     
     //--------------filterbank setup
@@ -91,8 +93,29 @@ void ofApp::setup(){
     
     filterBank.setup(bufferSize, midiMin, midiMax, inChannels, BANDWIDTH, sampleRate, 1.0);
     filterBank.setColor(ofColor::orange);
-    
    
+    //--------------aubio setup
+    
+    // setup onset object
+    onset.setup();
+    //onset.setup("mkl", 2 * bufferSize, bufferSize, sampleRate);
+    // listen to onset event
+    ofAddListener(onset.gotOnset, this, &ofApp::onsetEvent);
+    
+    // setup pitch object
+    pitch.setup();
+    //pitch.setup("yinfft", 8 * bufferSize, bufferSize, sampleRate);
+    
+    // setup beat object
+    beat.setup();
+    //beat.setup("default", 2 * bufferSize, bufferSize, samplerate);
+    // listen to beat event
+    ofAddListener(beat.gotBeat, this, &ofApp::beatEvent);
+    
+    // setup mel bands object
+    bands.setup();
+
+    
 }
 
 //--------------------------------------------------------------
@@ -377,3 +400,21 @@ void ofApp::gotMessage(ofMessage msg){
 void ofApp::dragEvent(ofDragInfo dragInfo){ 
 
 }
+
+//==========Aubio
+
+//----
+void ofApp::onsetEvent(float & time) {
+    //ofLog() << "got onset at " << time << " s";
+    gotOnset = true;
+}
+
+//----
+void ofApp::beatEvent(float & time) {
+    //ofLog() << "got beat at " << time << " s";
+    gotBeat = true;
+}
+
+
+
+

@@ -7,6 +7,7 @@
 #include "ofxGui.h"
 
 #include "ofxFilterbank.h"      //for filterbank
+#include "ofxAubio.h"           //for aubio
 
 //---- #defs for filterbank
 #define BANDWIDTH  1.0
@@ -18,7 +19,9 @@
 
 class ofApp : public ofBaseApp{
 
+    //-------essentia
 	public:
+
 		void setup();
 		void update();
 		void draw();
@@ -35,14 +38,14 @@ class ofApp : public ofBaseApp{
 		void windowResized(int w, int h);
 		void dragEvent(ofDragInfo dragInfo);
 		void gotMessage(ofMessage msg);
+    
+
 
         ofSoundStream soundStream;
         ofxAudioAnalyzer audioAnalyzer;
-        ofxFilterbank filterBank; //for filterbank
     
         float rms_l, rms_r;
         float smooth;
-    
         float rms;
         float power;
         float pitchFreq;
@@ -70,13 +73,42 @@ class ofApp : public ofBaseApp{
         vector<float> melBands;
         vector<float> mfcc;
         vector<float> hpcp;
-    
         vector<float> tristimulus;
     
         bool isOnset;
     
+        //-----filterbank
     
+        ofxFilterbank filterBank;
         ofxFloatSlider smoothing;
     
+        //-----aubio
+    
+        void onsetEvent(float & time);//for aubio
+        void beatEvent(float & time); //for aubio
+    
+    
+        private:
+            ofxAubioOnset onset;
+            ofxAubioPitch pitch;
+            ofxAubioBeat beat;
+            ofxAubioMelBands bands;
+            
+            ofxPanel pitchGui;
+            ofxFloatSlider midiPitch;
+            ofxFloatSlider pitchConfidence;
+            
+            ofxPanel beatGui;
+            bool gotBeat;
+            ofxFloatSlider bpm;
+            
+            ofxPanel onsetGui;
+            bool gotOnset;
+            ofxFloatSlider onsetThreshold;
+            ofxFloatSlider onsetNovelty;
+            ofxFloatSlider onsetThresholdedNovelty;
+            
+            ofxPanel bandsGui;
+            ofPolyline bandPlot;
 		
 };

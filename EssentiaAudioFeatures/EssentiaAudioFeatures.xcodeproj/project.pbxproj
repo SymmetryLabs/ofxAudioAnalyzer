@@ -25,6 +25,12 @@
 		C520D46D1DC968EB001E38D6 /* ofxSlider.cpp in Sources */ = {isa = PBXBuildFile; fileRef = C520D4621DC968EB001E38D6 /* ofxSlider.cpp */; };
 		C520D46E1DC968EB001E38D6 /* ofxSliderGroup.cpp in Sources */ = {isa = PBXBuildFile; fileRef = C520D4641DC968EB001E38D6 /* ofxSliderGroup.cpp */; };
 		C520D46F1DC968EB001E38D6 /* ofxToggle.cpp in Sources */ = {isa = PBXBuildFile; fileRef = C520D4661DC968EB001E38D6 /* ofxToggle.cpp */; };
+		C520FAB81DD57DF300C3EC6E /* ofxAubioBeat.cpp in Sources */ = {isa = PBXBuildFile; fileRef = C520FAA31DD57DF200C3EC6E /* ofxAubioBeat.cpp */; };
+		C520FAB91DD57DF300C3EC6E /* ofxAubioBlock.cpp in Sources */ = {isa = PBXBuildFile; fileRef = C520FAA51DD57DF200C3EC6E /* ofxAubioBlock.cpp */; };
+		C520FABA1DD57DF300C3EC6E /* ofxAubioMelBands.cpp in Sources */ = {isa = PBXBuildFile; fileRef = C520FAA71DD57DF200C3EC6E /* ofxAubioMelBands.cpp */; };
+		C520FABB1DD57DF300C3EC6E /* ofxAubioOnset.cpp in Sources */ = {isa = PBXBuildFile; fileRef = C520FAA91DD57DF200C3EC6E /* ofxAubioOnset.cpp */; };
+		C520FABC1DD57DF300C3EC6E /* ofxAubioPitch.cpp in Sources */ = {isa = PBXBuildFile; fileRef = C520FAAB1DD57DF200C3EC6E /* ofxAubioPitch.cpp */; };
+		C520FAC11DD5830300C3EC6E /* aubio.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = C520FAC01DD5830300C3EC6E /* aubio.framework */; };
 		C5D0E2281DCD5D2400566DD3 /* README.md in Sources */ = {isa = PBXBuildFile; fileRef = C5D0E2141DCD5D2400566DD3 /* README.md */; };
 		C5D0E2291DCD5D2400566DD3 /* fb_funcs.c in Sources */ = {isa = PBXBuildFile; fileRef = C5D0E2161DCD5D2400566DD3 /* fb_funcs.c */; };
 		C5D0E22A1DCD5D2400566DD3 /* ofxFilterbank.cpp in Sources */ = {isa = PBXBuildFile; fileRef = C5D0E2181DCD5D2400566DD3 /* ofxFilterbank.cpp */; };
@@ -173,6 +179,21 @@
 		C520D4651DC968EB001E38D6 /* ofxSliderGroup.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ofxSliderGroup.h; sourceTree = "<group>"; };
 		C520D4661DC968EB001E38D6 /* ofxToggle.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = ofxToggle.cpp; sourceTree = "<group>"; };
 		C520D4671DC968EB001E38D6 /* ofxToggle.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ofxToggle.h; sourceTree = "<group>"; };
+		C520FA791DD57DF200C3EC6E /* .gitignore */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = .gitignore; sourceTree = "<group>"; };
+		C520FA7A1DD57DF200C3EC6E /* aubio-0.4.2.darwin_framework.zip */ = {isa = PBXFileReference; lastKnownFileType = archive.zip; path = "aubio-0.4.2.darwin_framework.zip"; sourceTree = "<group>"; };
+		C520FAA01DD57DF200C3EC6E /* fetch_aubio_osx_framework.sh */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.script.sh; path = fetch_aubio_osx_framework.sh; sourceTree = "<group>"; };
+		C520FAA21DD57DF200C3EC6E /* ofxAubio.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ofxAubio.h; sourceTree = "<group>"; };
+		C520FAA31DD57DF200C3EC6E /* ofxAubioBeat.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = ofxAubioBeat.cpp; sourceTree = "<group>"; };
+		C520FAA41DD57DF200C3EC6E /* ofxAubioBeat.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ofxAubioBeat.h; sourceTree = "<group>"; };
+		C520FAA51DD57DF200C3EC6E /* ofxAubioBlock.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = ofxAubioBlock.cpp; sourceTree = "<group>"; };
+		C520FAA61DD57DF200C3EC6E /* ofxAubioBlock.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ofxAubioBlock.h; sourceTree = "<group>"; };
+		C520FAA71DD57DF200C3EC6E /* ofxAubioMelBands.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = ofxAubioMelBands.cpp; sourceTree = "<group>"; };
+		C520FAA81DD57DF200C3EC6E /* ofxAubioMelBands.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ofxAubioMelBands.h; sourceTree = "<group>"; };
+		C520FAA91DD57DF200C3EC6E /* ofxAubioOnset.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = ofxAubioOnset.cpp; sourceTree = "<group>"; };
+		C520FAAA1DD57DF200C3EC6E /* ofxAubioOnset.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ofxAubioOnset.h; sourceTree = "<group>"; };
+		C520FAAB1DD57DF200C3EC6E /* ofxAubioPitch.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = ofxAubioPitch.cpp; sourceTree = "<group>"; };
+		C520FAAC1DD57DF200C3EC6E /* ofxAubioPitch.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ofxAubioPitch.h; sourceTree = "<group>"; };
+		C520FAC01DD5830300C3EC6E /* aubio.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = aubio.framework; path = "ofxAubio/aubio-0.4.2.darwin_framework/aubio.framework"; sourceTree = "<group>"; };
 		C5D0E2141DCD5D2400566DD3 /* README.md */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = net.daringfireball.markdown; path = README.md; sourceTree = "<group>"; };
 		C5D0E2161DCD5D2400566DD3 /* fb_funcs.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = fb_funcs.c; sourceTree = "<group>"; };
 		C5D0E2171DCD5D2400566DD3 /* fb_funcs.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = fb_funcs.h; sourceTree = "<group>"; };
@@ -217,6 +238,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				E4328149138ABC9F0047C5CB /* openFrameworksDebug.a in Frameworks */,
+				C520FAC11DD5830300C3EC6E /* aubio.framework in Frameworks */,
 				9D72A0B4BAED5487D5CD7538 /* OpenAL.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -445,6 +467,7 @@
 		BB4B014C10F69532006C3DED /* addons */ = {
 			isa = PBXGroup;
 			children = (
+				C520FA781DD57DF200C3EC6E /* ofxAubio */,
 				C5D0E1DB1DCD5D2400566DD3 /* ofxFilterbank */,
 				C520D4551DC968EB001E38D6 /* ofxGui */,
 				69EA4EEFE27955C695DB2D99 /* ofxAudioAnalyzer */,
@@ -499,6 +522,43 @@
 				C520D4651DC968EB001E38D6 /* ofxSliderGroup.h */,
 				C520D4661DC968EB001E38D6 /* ofxToggle.cpp */,
 				C520D4671DC968EB001E38D6 /* ofxToggle.h */,
+			);
+			path = src;
+			sourceTree = "<group>";
+		};
+		C520FA781DD57DF200C3EC6E /* ofxAubio */ = {
+			isa = PBXGroup;
+			children = (
+				C520FA791DD57DF200C3EC6E /* .gitignore */,
+				C520FA7A1DD57DF200C3EC6E /* aubio-0.4.2.darwin_framework.zip */,
+				C520FA9F1DD57DF200C3EC6E /* scripts */,
+				C520FAA11DD57DF200C3EC6E /* src */,
+			);
+			path = ofxAubio;
+			sourceTree = "<group>";
+		};
+		C520FA9F1DD57DF200C3EC6E /* scripts */ = {
+			isa = PBXGroup;
+			children = (
+				C520FAA01DD57DF200C3EC6E /* fetch_aubio_osx_framework.sh */,
+			);
+			path = scripts;
+			sourceTree = "<group>";
+		};
+		C520FAA11DD57DF200C3EC6E /* src */ = {
+			isa = PBXGroup;
+			children = (
+				C520FAA21DD57DF200C3EC6E /* ofxAubio.h */,
+				C520FAA31DD57DF200C3EC6E /* ofxAubioBeat.cpp */,
+				C520FAA41DD57DF200C3EC6E /* ofxAubioBeat.h */,
+				C520FAA51DD57DF200C3EC6E /* ofxAubioBlock.cpp */,
+				C520FAA61DD57DF200C3EC6E /* ofxAubioBlock.h */,
+				C520FAA71DD57DF200C3EC6E /* ofxAubioMelBands.cpp */,
+				C520FAA81DD57DF200C3EC6E /* ofxAubioMelBands.h */,
+				C520FAA91DD57DF200C3EC6E /* ofxAubioOnset.cpp */,
+				C520FAAA1DD57DF200C3EC6E /* ofxAubioOnset.h */,
+				C520FAAB1DD57DF200C3EC6E /* ofxAubioPitch.cpp */,
+				C520FAAC1DD57DF200C3EC6E /* ofxAubioPitch.h */,
 			);
 			path = src;
 			sourceTree = "<group>";
@@ -609,6 +669,7 @@
 		E4EEC9E9138DF44700A80321 /* openFrameworks */ = {
 			isa = PBXGroup;
 			children = (
+				C520FAC01DD5830300C3EC6E /* aubio.framework */,
 				E4EB691F138AFCF100A09F29 /* CoreOF.xcconfig */,
 				E4328143138ABC890047C5CB /* openFrameworksLib.xcodeproj */,
 			);
@@ -711,14 +772,18 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				C520FAB91DD57DF300C3EC6E /* ofxAubioBlock.cpp in Sources */,
 				E4B69E200A3A1BDC003C02F2 /* main.cpp in Sources */,
 				E4B69E210A3A1BDC003C02F2 /* ofApp.cpp in Sources */,
 				98355E578D9CCEE106FBC6EC /* ofSoundPlayerExtended.cpp in Sources */,
 				C520D46A1DC968EB001E38D6 /* ofxGuiGroup.cpp in Sources */,
 				6E22DD7AA6893113E1F2DF07 /* ofxAAMultiPitchKlapuriAlgorithm.cpp in Sources */,
 				C520D4681DC968EB001E38D6 /* ofxBaseGui.cpp in Sources */,
+				C520FABA1DD57DF300C3EC6E /* ofxAubioMelBands.cpp in Sources */,
+				C520FAB81DD57DF300C3EC6E /* ofxAubioBeat.cpp in Sources */,
 				866AC116016D40F86DCB4510 /* ofxAAOnsetsAlgorithm.cpp in Sources */,
 				C520D46F1DC968EB001E38D6 /* ofxToggle.cpp in Sources */,
+				C520FABB1DD57DF300C3EC6E /* ofxAubioOnset.cpp in Sources */,
 				1D397CC89DDD782F892B7483 /* ofxAudioAnalyzer.cpp in Sources */,
 				3CA17DE70B38CA2592D51E7D /* ofxAudioAnalyzerAlgorithms.cpp in Sources */,
 				C5D0E2281DCD5D2400566DD3 /* README.md in Sources */,
@@ -731,6 +796,7 @@
 				C520D46D1DC968EB001E38D6 /* ofxSlider.cpp in Sources */,
 				C520D46B1DC968EB001E38D6 /* ofxLabel.cpp in Sources */,
 				2761F96388F64FE596863183 /* audiodecodercoreaudio.cpp in Sources */,
+				C520FABC1DD57DF300C3EC6E /* ofxAubioPitch.cpp in Sources */,
 				C520D46E1DC968EB001E38D6 /* ofxSliderGroup.cpp in Sources */,
 				C520D4691DC968EB001E38D6 /* ofxButton.cpp in Sources */,
 			);
@@ -885,6 +951,8 @@
 					"$(inherited)",
 					"$(FRAMEWORK_SEARCH_PATHS_QUOTED_FOR_TARGET_1)",
 					/System/Library/Frameworks,
+					"$(PROJECT_DIR)/ofxAubio/example_aubioDemo/aubio-0.4.2.darwin_framework",
+					"$(PROJECT_DIR)/ofxAubio/aubio-0.4.2.darwin_framework",
 				);
 				FRAMEWORK_SEARCH_PATHS_QUOTED_FOR_TARGET_1 = "\"$(SRCROOT)/../../../libs/glut/lib/osx\"";
 				GCC_DYNAMIC_NO_PIC = NO;
@@ -921,6 +989,7 @@
 					"../../../addons/ASIO/asio-1.10.6/include",
 					../../../addons/OSCPKT/oscpkt,
 					../../../addons/ofxAubio/src,
+					../../../addons/ofxAubio/EssentiaAudioFeatures/ofxAubio/src,
 				);
 				ICON = "$(ICON_NAME_DEBUG)";
 				ICON_FILE = "$(ICON_FILE_PATH)$(ICON)";
@@ -949,6 +1018,8 @@
 					"$(inherited)",
 					"$(FRAMEWORK_SEARCH_PATHS_QUOTED_FOR_TARGET_1)",
 					/System/Library/Frameworks,
+					"$(PROJECT_DIR)/ofxAubio/example_aubioDemo/aubio-0.4.2.darwin_framework",
+					"$(PROJECT_DIR)/ofxAubio/aubio-0.4.2.darwin_framework",
 				);
 				FRAMEWORK_SEARCH_PATHS_QUOTED_FOR_TARGET_1 = "\"$(SRCROOT)/../../../libs/glut/lib/osx\"";
 				GCC_GENERATE_DEBUGGING_SYMBOLS = YES;
@@ -984,6 +1055,7 @@
 					"../../../addons/ASIO/asio-1.10.6/include",
 					../../../addons/OSCPKT/oscpkt,
 					../../../addons/ofxAubio/src,
+					../../../addons/ofxAubio/EssentiaAudioFeatures/ofxAubio/src,
 				);
 				ICON = "$(ICON_NAME_RELEASE)";
 				ICON_FILE = "$(ICON_FILE_PATH)$(ICON)";
