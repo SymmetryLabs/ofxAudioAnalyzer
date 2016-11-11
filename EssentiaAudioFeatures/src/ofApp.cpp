@@ -135,7 +135,6 @@ void ofApp::update(){
     melBands = audioAnalyzer.getValues(MEL_BANDS, 0, smoothing);
     mfcc = audioAnalyzer.getValues(MFCC, 0, smoothing);
     hpcp = audioAnalyzer.getValues(HPCP, 0, smoothing);
-    
     tristimulus = audioAnalyzer.getValues(TRISTIMULUS, 0, smoothing);
     
     isOnset = audioAnalyzer.getOnsetValue(0);
@@ -168,6 +167,43 @@ void ofApp::update(){
     pkt.addMessage(msg.init("/essentia/strongPeakNorm").pushFloat(strongPeakNorm));
     pkt.addMessage(msg.init("/essentia/strongDecayNorm").pushFloat(strongDecayNorm));
     
+    // Boolean, mapped to onset.
+    pkt.addMessage(msg.init("/essentia/isOnset").pushFloat(isOnset));
+    
+    
+    // Vector Parameters
+    
+    int spectrum_size=spectrum.size();
+    pkt.addMessage(msg.init("/essentia/spectrum"));
+    for(int n=0; n<spectrum_size; n++)
+    {   msg.pushFloat(spectrum[n]);
+    }
+
+    int melBands_size=melBands.size();
+    pkt.addMessage(msg.init("/essentia/melBands"));
+    for(int n=0; n<melBands_size; n++)
+    {   msg.pushFloat(melBands[n]);
+    }
+    
+    int mfcc_size=mfcc.size();
+    pkt.addMessage(msg.init("/essentia/mfcc"));
+    for(int n=0; n<mfcc_size; n++)
+    {   msg.pushFloat(mfcc[n]);
+    }
+    
+    int hpcp_size=hpcp.size();
+    pkt.addMessage(msg.init("/essentia/hpcp"));
+    for(int n=0; n<hpcp_size; n++)
+    {   msg.pushFloat(hpcp[n]);
+    }
+    
+    int tristimulus_size=tristimulus.size();
+    pkt.addMessage(msg.init("/essentia/tristimulus"));
+    for(int n=0; n<tristimulus_size; n++)
+    {   msg.pushFloat(tristimulus[n]);
+    }
+    
+    // Polyphonic Pitch from Filterbank
     float * polyphonic_pitch_pointer;
     float log_smth_energy;
     polyphonic_pitch_pointer=filterBank.getSmthEnergies();
