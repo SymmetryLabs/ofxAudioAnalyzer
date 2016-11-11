@@ -920,6 +920,7 @@
 					../../../libs/boost/include,
 					"../../../addons/ASIO/asio-1.10.6/include",
 					../../../addons/OSCPKT/oscpkt,
+					../../../addons/ofxAubio/src,
 				);
 				ICON = "$(ICON_NAME_DEBUG)";
 				ICON_FILE = "$(ICON_FILE_PATH)$(ICON)";
@@ -982,6 +983,7 @@
 					../../../libs/boost/include,
 					"../../../addons/ASIO/asio-1.10.6/include",
 					../../../addons/OSCPKT/oscpkt,
+					../../../addons/ofxAubio/src,
 				);
 				ICON = "$(ICON_NAME_RELEASE)";
 				ICON_FILE = "$(ICON_FILE_PATH)$(ICON)";
