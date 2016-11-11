@@ -245,7 +245,26 @@ void ofApp::update(){
     }
     std::cout<<endl;
     
+    // Onsets, BPM and monophonic pitch from Aubio
     
+    onset.setThreshold(onsetThreshold);
+    
+    onsetNovelty = onset.novelty;
+    onsetThresholdedNovelty = onset.thresholdedNovelty;
+    std::cout<<"Onset Threshold Novelty:"<<onsetThresholdedNovelty<<endl ;
+    
+    // update pitch info
+    pitchConfidence = pitch.pitchConfidence;
+    if (pitch.latestPitch) midiPitch = pitch.latestPitch;
+    std::cout<<"Pitch:"<<midiPitch<<endl ;
+    
+    // update BPM
+    bpm = beat.bpm;
+    std::cout<<"BPM:"<<bpm<<endl ;
+    
+    pkt.addMessage(msg.init("/aubio/onset").pushFloat(onset.thresholdedNovelty));
+    pkt.addMessage(msg.init("/aubio/midiPitch").pushFloat(pitch.latestPitch));
+    pkt.addMessage(msg.init("/aubio/bpm").pushFloat(beat.bpm));
     
     pkt.endBundle();
     if (pkt.isOk()) {
@@ -348,6 +367,18 @@ void ofApp::audioIn(ofSoundBuffer &inBuffer){
     temp = inBuffer.getBuffer();
     float *p = &temp[0];
     filterBank.analyze(p);
+    
+    int inChannels=2;
+    
+    //Aubio
+    // compute onset detection
+    onset.audioIn(p, bufferSize, inChannels);
+    // compute pitch detection
+    pitch.audioIn(p, bufferSize, inChannels);
+    // compute beat location
+    beat.audioIn(p, bufferSize, inChannels);
+    // compute bands
+    bands.audioIn(p, bufferSize, inChannels);
 }
 
 //--------------------------------------------------------------
