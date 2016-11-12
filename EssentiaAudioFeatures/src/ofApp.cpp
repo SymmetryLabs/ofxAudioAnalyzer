@@ -248,7 +248,6 @@ void ofApp::update(){
     // Onsets, BPM and monophonic pitch from Aubio
     
     onset.setThreshold(onsetThreshold);
-    
     onsetNovelty = onset.novelty;
     onsetThresholdedNovelty = onset.thresholdedNovelty;
     std::cout<<"Onset Threshold Novelty:"<<onsetThresholdedNovelty<<endl ;
