@@ -27,7 +27,7 @@ class ofxAubioBlock {
     protected:
         uint_t buf_size;
         uint_t hop_size;
-        uint_t curpos;
+        uint_t curpos=0;
         fvec_t * aubio_input;
         fvec_t * aubio_output;
         void setup(std::string method, int buf_s, int hop_s, int samplerate);

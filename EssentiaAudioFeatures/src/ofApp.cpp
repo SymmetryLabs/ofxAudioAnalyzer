@@ -363,21 +363,19 @@ void ofApp::audioIn(ofSoundBuffer &inBuffer){
 
     //Analyze Input Buffer with ofxFilterbank
     vector <float> temp;
-    temp = inBuffer.getBuffer();
+    temp = inBuffer.getBuffer(); // this spits out <vector &>
     float *p = &temp[0];
-    filterBank.analyze(p);
-    
-    int inChannels=2;
+    filterBank.analyze(p);  //if the gui is working, then this is working, and the pointer works.
     
     //Aubio
     // compute onset detection
-    onset.audioIn(p, bufferSize, inChannels);
+    onset.audioIn(&temp[0], inBuffer.getNumFrames(), inBuffer.getNumChannels() );
     // compute pitch detection
-    pitch.audioIn(p, bufferSize, inChannels);
+    pitch.audioIn(&temp[0], inBuffer.getNumFrames(), inBuffer.getNumChannels());
     // compute beat location
-    beat.audioIn(p, bufferSize, inChannels);
+    beat.audioIn(&temp[0], inBuffer.getNumFrames(), inBuffer.getNumChannels());
     // compute bands
-    bands.audioIn(p, bufferSize, inChannels);
+    bands.audioIn(&temp[0], inBuffer.getNumFrames(), inBuffer.getNumChannels());
 }
 
 //--------------------------------------------------------------
