@@ -194,7 +194,7 @@ void ofApp::update(){
     pkt.addMessage(msg.init("/essentia/strongDecayNorm").pushFloat(strongDecayNorm));
     
     // Boolean, mapped to onset.
-    pkt.addMessage(msg.init("/essentia/isOnset").pushFloat(isOnset));
+    pkt.addMessage(msg.init("/essentia/isOnset").pushBool(isOnset));
     
     
     // Vector Parameters
