@@ -232,17 +232,20 @@ void ofApp::update(){
     // Polyphonic Pitch from Filterbank
     float * polyphonic_pitch_pointer;
     float log_smth_energy;
+    Message temp_msg_pter;
     polyphonic_pitch_pointer=filterBank.getSmthEnergies();
     
     log_smth_energy = LIN2dB (polyphonic_pitch_pointer[filterBank.midiMinVar]);
-    pkt.addMessage(msg.init("/essentia/PolyphonicPitch").pushFloat(log_smth_energy));
+    temp_msg_pter= msg.init("/essentia/PolyphonicPitch").pushFloat(log_smth_energy);
     std::cout<<"Midi Min= "<<filterBank.midiMinVar<<endl;
     std::cout<<"Midi Min= "<<filterBank.midiMaxVar<<endl;
     for(int n=filterBank.midiMinVar+1; n<filterBank.midiMaxVar; n++)  // 88
     {   log_smth_energy = LIN2dB (polyphonic_pitch_pointer[n]);
         std::cout<<log_smth_energy<<" ";
-        msg.pushFloat(log_smth_energy);
+        temp_msg_pter.pushFloat(log_smth_energy);
     }
+    pkt.addMessage(temp_msg_pter);
+    
     std::cout<<endl;
     
     // Onsets, BPM and monophonic pitch from Aubio
