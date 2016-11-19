@@ -246,7 +246,7 @@ void ofApp::update(){
     std::cout<<endl;
     
     // Onsets, BPM and monophonic pitch from Aubio
-    
+    /*
     onset.setThreshold(onsetThreshold);
     onsetNovelty = onset.novelty;
     onsetThresholdedNovelty = onset.thresholdedNovelty;
@@ -264,7 +264,8 @@ void ofApp::update(){
     pkt.addMessage(msg.init("/aubio/onset").pushFloat(onset.thresholdedNovelty));
     pkt.addMessage(msg.init("/aubio/midiPitch").pushFloat(pitch.latestPitch));
     pkt.addMessage(msg.init("/aubio/bpm").pushFloat(beat.bpm));
-    
+    */
+     
     pkt.endBundle();
     if (pkt.isOk()) {
         message=pkt.packetData();
