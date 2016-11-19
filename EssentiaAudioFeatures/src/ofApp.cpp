@@ -236,10 +236,10 @@ void ofApp::update(){
     polyphonic_pitch_pointer=filterBank.getSmthEnergies();
     
     log_smth_energy = LIN2dB (polyphonic_pitch_pointer[filterBank.midiMinVar]);
-    temp_msg_pter= msg.init("/essentia/PolyphonicPitch").pushFloat(log_smth_energy);
+    temp_msg_pter= msg.init("/essentia/PolyphonicPitch");
     std::cout<<"Midi Min= "<<filterBank.midiMinVar<<endl;
     std::cout<<"Midi Min= "<<filterBank.midiMaxVar<<endl;
-    for(int n=filterBank.midiMinVar+1; n<filterBank.midiMaxVar; n++)  // 88
+    for(int n=filterBank.midiMinVar; n<filterBank.midiMaxVar; n++)  // 87
     {   log_smth_energy = LIN2dB (polyphonic_pitch_pointer[n]);
         std::cout<<log_smth_energy<<" ";
         temp_msg_pter.pushFloat(log_smth_energy);
