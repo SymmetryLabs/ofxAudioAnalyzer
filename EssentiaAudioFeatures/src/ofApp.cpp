@@ -14,7 +14,7 @@ asio::io_service io_service;
 //---------------------Global Var: OSC-------------------------------------
 
 using namespace oscpkt;
-PacketWriter pkt;
+PacketWriter pkt, pkt2;
 Message msg;
 const void * message;
 int size;
@@ -213,40 +213,17 @@ void ofApp::update(){
     }
     pkt.addMessage(temp_msg_pter);
     
-
-    
-    /*
-    int spectrum_size=spectrum.size(); //257
-    temp_msg_pter = msg.init("/essentia/spectrum");
-    for(int n=0; n<spectrum_size; n++)
-    {   temp_msg_pter.pushFloat((float)spectrum[n]);
-    }
-    pkt.addMessage(temp_msg_pter);
-
-     int hpcp_size=hpcp.size();  //12
-     std::cout<<endl<<"Hpcp Size: "<<hpcp_size<<endl;
-     temp_msg_pter = msg.init("/essentia/hpcp");
-     for(int n=0; n<hpcp_size; n++)
-     {   temp_msg_pter.pushFloat((float)hpcp[n]);
-     }
-     pkt.addMessage(temp_msg_pter);
-    
-
-    
-
-    
     int tristimulus_size=tristimulus.size(); //3
     temp_msg_pter = msg.init("/essentia/tristimulus");
     for(int n=0; n<tristimulus_size; n++)
     {   temp_msg_pter.pushFloat((float)tristimulus[n]);
     }
     pkt.addMessage(temp_msg_pter);
-*/
-     
+    
     // Polyphonic Pitch from Filterbank
     float * polyphonic_pitch_pointer;
     float log_smth_energy;
-
+    
     polyphonic_pitch_pointer=filterBank.getSmthEnergies();
     
     log_smth_energy = LIN2dB (polyphonic_pitch_pointer[filterBank.midiMinVar]);
@@ -261,6 +238,52 @@ void ofApp::update(){
     pkt.addMessage(temp_msg_pter);
     
     std::cout<<endl;
+
+    pkt.endBundle();
+    if (pkt.isOk()) {
+        message=pkt.packetData();
+        size= pkt.packetSize();
+        client.send_osc(message, size);
+    }
+    msg.clear();
+    pkt.Reset();
+    
+    
+    // Make  & Send Second OSC Object (first bundle was full)
+    pkt2.startBundle();
+    
+    int spectrum_size=spectrum.size(); //257
+    temp_msg_pter = msg.init("/essentia/spectrum");
+    for(int n=0; n<spectrum_size; n++)
+    {   temp_msg_pter.pushFloat((float)spectrum[n]);
+    }
+    pkt2.addMessage(temp_msg_pter);
+
+    int hpcp_size=hpcp.size();  //12
+    std::cout<<endl<<"Hpcp Size: "<<hpcp_size<<endl;
+    temp_msg_pter = msg.init("/essentia/hpcp");
+    for(int n=0; n<hpcp_size; n++)
+    {   temp_msg_pter.pushFloat((float)hpcp[n]);
+    }
+    pkt2.addMessage(temp_msg_pter);
+
+    pkt2.endBundle();
+    if (pkt2.isOk()) {
+        message=pkt2.packetData();
+        size= pkt2.packetSize();
+        client.send_osc(message, size);
+    }
+    msg.clear();
+    pkt2.Reset();
+
+
+    
+
+    
+
+
+     
+  
     
     // Onsets, BPM and monophonic pitch from Aubio
     /*
@@ -283,14 +306,7 @@ void ofApp::update(){
     pkt.addMessage(msg.init("/aubio/bpm").pushFloat(beat.bpm));
     */
      
-    pkt.endBundle();
-    if (pkt.isOk()) {
-        message=pkt.packetData();
-        size= pkt.packetSize();
-        client.send_osc(message, size);
-    }
-    msg.clear();
-    pkt.Reset();
+   
 }
 
 //--------------------------------------------------------------
