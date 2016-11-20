@@ -198,41 +198,55 @@ void ofApp::update(){
     
     
     // Vector Parameters
-    
-    int spectrum_size=spectrum.size(); //257
-    pkt.addMessage(msg.init("/essentia/spectrum"));
-    for(int n=0; n<spectrum_size; n++)
-    {   msg.pushFloat(spectrum[n]);
-    }
-
+    Message temp_msg_pter;
     int melBands_size=melBands.size(); //24
-    pkt.addMessage(msg.init("/essentia/melBands"));
+    temp_msg_pter = msg.init("/essentia/melBands");
     for(int n=0; n<melBands_size; n++)
-    {   msg.pushFloat(melBands[n]);
+    {   temp_msg_pter.pushFloat((float)melBands[n]);
     }
+    pkt.addMessage(temp_msg_pter);
     
     int mfcc_size=mfcc.size();  //13
-    pkt.addMessage(msg.init("/essentia/mfcc"));
+    temp_msg_pter = msg.init("/essentia/mfcc");
     for(int n=0; n<mfcc_size; n++)
-    {   msg.pushFloat(mfcc[n]);
+    {   temp_msg_pter.pushFloat((float)mfcc[n]);
     }
+    pkt.addMessage(temp_msg_pter);
     
-    int hpcp_size=hpcp.size();  //12
-    pkt.addMessage(msg.init("/essentia/hpcp"));
-    for(int n=0; n<hpcp_size; n++)
-    {   msg.pushFloat(hpcp[n]);
+
+    
+    /*
+    int spectrum_size=spectrum.size(); //257
+    temp_msg_pter = msg.init("/essentia/spectrum");
+    for(int n=0; n<spectrum_size; n++)
+    {   temp_msg_pter.pushFloat((float)spectrum[n]);
     }
+    pkt.addMessage(temp_msg_pter);
+
+     int hpcp_size=hpcp.size();  //12
+     std::cout<<endl<<"Hpcp Size: "<<hpcp_size<<endl;
+     temp_msg_pter = msg.init("/essentia/hpcp");
+     for(int n=0; n<hpcp_size; n++)
+     {   temp_msg_pter.pushFloat((float)hpcp[n]);
+     }
+     pkt.addMessage(temp_msg_pter);
+    
+
+    
+
     
     int tristimulus_size=tristimulus.size(); //3
-    pkt.addMessage(msg.init("/essentia/tristimulus"));
+    temp_msg_pter = msg.init("/essentia/tristimulus");
     for(int n=0; n<tristimulus_size; n++)
-    {   msg.pushFloat(tristimulus[n]);
+    {   temp_msg_pter.pushFloat((float)tristimulus[n]);
     }
-    
+    pkt.addMessage(temp_msg_pter);
+*/
+     
     // Polyphonic Pitch from Filterbank
     float * polyphonic_pitch_pointer;
     float log_smth_energy;
-    Message temp_msg_pter;
+
     polyphonic_pitch_pointer=filterBank.getSmthEnergies();
     
     log_smth_energy = LIN2dB (polyphonic_pitch_pointer[filterBank.midiMinVar]);
