@@ -27,7 +27,8 @@ ofxAubioPitch::ofxAubioPitch()
 
 void ofxAubioPitch::setup()
 {
-    setup("default", 2048, 256, 44100);
+    //setup("default", 2048, 256, 44100);
+    setup("default", 1024, 512, 44100);
 }
 
 void ofxAubioPitch::setup(string method, int buf_s, int hop_s, int samplerate)

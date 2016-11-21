@@ -29,7 +29,8 @@ ofxAubioOnset::ofxAubioOnset()
 
 void ofxAubioOnset::setup()
 {
-    setup("default", 512, 256, 44100);
+    //setup("default", 512, 256, 44100);
+    setup("default", 1024*2, 512*2, 44100);
 }
 
 void ofxAubioOnset::setup(string method, int buf_s, int hop_s, int samplerate)

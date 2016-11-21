@@ -1,8 +1,10 @@
 #include "ofApp.h"
-#include "asio.hpp"     //For socket integration
-#include "oscpkt.hh"    //For OSC Serialzation
-#include "ofxAubio.h"           //for aubio
-
+#include "ofEventUtils.h"   //for Aubio
+#include "asio.hpp"         //for socket integration
+#include "oscpkt.hh"        //for OSC Serialzation
+#include "ofxAubio.h"       //for aubio
+#include <string.h>         //for aubio
+#include "ofSoundStream.h"
 
 //---------------------Global Var: ASIO------------------------------------
 
@@ -66,10 +68,32 @@ void ofApp::setup(){
     ofSetFrameRate(60);
     
     int sampleRate = 44100;
-    //int bufferSize = 512;
     int outChannels = 0;
     int inChannels = 2;
     
+    
+
+    //--------------aubio setup
+    
+    // setup onset object
+    //onset.setup();
+    onset.setup("mkl", 2 * bufferSize, bufferSize, sampleRate);
+    // listen to onset event
+    ofAddListener(onset.gotOnset, this, &ofApp::onsetEvent);
+    
+    // setup pitch object
+    //pitch.setup();
+    pitch.setup("yinfft", 8 * bufferSize, bufferSize, sampleRate);
+    
+    
+    // setup beat object
+    //beat.setup();
+    beat.setup("default", 2 * bufferSize, bufferSize, sampleRate);
+    // listen to beat event
+
+    // setup mel bands object
+    bands.setup();
+    ofAddListener(beat.gotBeat, this, &ofApp::beatEvent);
     
     //--------------essentia setup
     
@@ -93,27 +117,7 @@ void ofApp::setup(){
     
     filterBank.setup(bufferSize, midiMin, midiMax, inChannels, BANDWIDTH, sampleRate, 1.0);
     filterBank.setColor(ofColor::orange);
-   
-    //--------------aubio setup
     
-    // setup onset object
-    onset.setup();
-    //onset.setup("mkl", 2 * bufferSize, bufferSize, sampleRate);
-    // listen to onset event
-    ofAddListener(onset.gotOnset, this, &ofApp::onsetEvent);
-    
-    // setup pitch object
-    pitch.setup();
-    //pitch.setup("yinfft", 8 * bufferSize, bufferSize, sampleRate);
-    
-    // setup beat object
-    beat.setup();
-    //beat.setup("default", 2 * bufferSize, bufferSize, samplerate);
-    // listen to beat event
-    ofAddListener(beat.gotBeat, this, &ofApp::beatEvent);
-    
-    // setup mel bands object
-    bands.setup();
 
     
 }
@@ -266,22 +270,6 @@ void ofApp::update(){
     {   temp_msg_pter.pushFloat((float)hpcp[n]);
     }
     pkt2.addMessage(temp_msg_pter);
-
-    // Onsets, BPM and monophonic pitch from Aubio
-    
-    onset.setThreshold(onsetThreshold);
-    onsetNovelty = onset.novelty;
-    onsetThresholdedNovelty = onset.thresholdedNovelty;
-    std::cout<<"Onset Threshold Novelty:"<<onsetThresholdedNovelty<<endl ;
-    
-    // update pitch info
-    pitchConfidence = pitch.pitchConfidence;
-    if (pitch.latestPitch) midiPitch = pitch.latestPitch;
-    std::cout<<"Pitch:"<<midiPitch<<endl ;
-    
-    // update BPM
-    bpm = beat.bpm;
-    std::cout<<"BPM:"<<bpm<<endl ;
     
     pkt2.addMessage(msg.init("/aubio/onset").pushFloat(onset.thresholdedNovelty));
     pkt2.addMessage(msg.init("/aubio/midiPitch").pushFloat(pitch.latestPitch));
@@ -380,6 +368,22 @@ void ofApp::draw(){
     
     string reportString =  "Sampling Rate: "+ ofToString(SR) +"\nBuffer size: "+ ofToString(bufferSize);
     ofDrawBitmapString(reportString, 10, 700);
+    
+    // Onsets, BPM and monophonic pitch from Aubio
+    
+    onset.setThreshold(onsetThreshold);
+    onsetNovelty = onset.novelty;
+    onsetThresholdedNovelty = onset.thresholdedNovelty;
+    std::cout<<"Onset Threshold Novelty:"<<onsetThresholdedNovelty<<endl ;
+    
+    // update pitch info
+    pitchConfidence = pitch.pitchConfidence;
+    if (pitch.latestPitch) midiPitch = pitch.latestPitch;
+    std::cout<<"Pitch:"<<midiPitch<<endl ;
+    
+    // update BPM
+    bpm = beat.bpm;
+    std::cout<<"BPM:"<<bpm<<endl ;
 
 }
 //--------------------------------------------------------------
@@ -394,17 +398,19 @@ void ofApp::audioIn(ofSoundBuffer &inBuffer){
     filterBank.analyze(p);  //if the gui is working, then this is working, and the pointer works.
     
     //Aubio
-    /*
+    
     // compute onset detection
-    onset.audioIn(&temp[0], inBuffer.getNumFrames(), inBuffer.getNumChannels() );
+    
+    onset.audioIn(p, inBuffer.getNumFrames(), inBuffer.getNumChannels() );
     // compute pitch detection
-    pitch.audioIn(&temp[0], inBuffer.getNumFrames(), inBuffer.getNumChannels());
+    pitch.audioIn(p, inBuffer.getNumFrames(), inBuffer.getNumChannels());
     // compute beat location
-    beat.audioIn(&temp[0], inBuffer.getNumFrames(), inBuffer.getNumChannels());
+    beat.audioIn(p, inBuffer.getNumFrames(), inBuffer.getNumChannels());
     // compute bands
-    bands.audioIn(&temp[0], inBuffer.getNumFrames(), inBuffer.getNumChannels());
-     */
+    bands.audioIn(p, inBuffer.getNumFrames(), inBuffer.getNumChannels());
+    
 }
+
 
 //--------------------------------------------------------------
 void ofApp::exit(){

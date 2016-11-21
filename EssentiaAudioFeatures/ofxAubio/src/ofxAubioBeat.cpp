@@ -29,7 +29,8 @@ ofxAubioBeat::ofxAubioBeat()
 
 void ofxAubioBeat::setup()
 {
-    setup("default", 512, 256, 44100);
+    //setup("default", 512, 256, 44100);
+    setup("default", 1024, 512, 44100);
 }
 
 void ofxAubioBeat::setup(string method, int buf_s, int hop_s, int samplerate)
