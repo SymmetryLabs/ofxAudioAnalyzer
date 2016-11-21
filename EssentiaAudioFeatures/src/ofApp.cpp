@@ -267,26 +267,8 @@ void ofApp::update(){
     }
     pkt2.addMessage(temp_msg_pter);
 
-    pkt2.endBundle();
-    if (pkt2.isOk()) {
-        message=pkt2.packetData();
-        size= pkt2.packetSize();
-        client.send_osc(message, size);
-    }
-    msg.clear();
-    pkt2.Reset();
-
-
-    
-
-    
-
-
-     
-  
-    
     // Onsets, BPM and monophonic pitch from Aubio
-    /*
+    
     onset.setThreshold(onsetThreshold);
     onsetNovelty = onset.novelty;
     onsetThresholdedNovelty = onset.thresholdedNovelty;
@@ -301,11 +283,21 @@ void ofApp::update(){
     bpm = beat.bpm;
     std::cout<<"BPM:"<<bpm<<endl ;
     
-    pkt.addMessage(msg.init("/aubio/onset").pushFloat(onset.thresholdedNovelty));
-    pkt.addMessage(msg.init("/aubio/midiPitch").pushFloat(pitch.latestPitch));
-    pkt.addMessage(msg.init("/aubio/bpm").pushFloat(beat.bpm));
-    */
-     
+    pkt2.addMessage(msg.init("/aubio/onset").pushFloat(onset.thresholdedNovelty));
+    pkt2.addMessage(msg.init("/aubio/midiPitch").pushFloat(pitch.latestPitch));
+    pkt2.addMessage(msg.init("/aubio/bpm").pushFloat(beat.bpm));
+    
+    //Close the second bundle
+    pkt2.endBundle();
+    if (pkt2.isOk()) {
+        message=pkt2.packetData();
+        size= pkt2.packetSize();
+        client.send_osc(message, size);
+    }
+    msg.clear();
+    pkt2.Reset();
+    
+
    
 }
 
