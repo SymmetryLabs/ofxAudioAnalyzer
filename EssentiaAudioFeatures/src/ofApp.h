@@ -18,6 +18,13 @@
 
 
 class ofApp : public ofBaseApp{
+    
+    //-----scaling
+    
+    float logScale(float scaledOutput, float minVal, float maxVal);
+    float inverseLogScale(float scaledOutput, float minVal, float maxVal);
+    float normalize(float old, float minVal, float maxVal);
+    float trigger(float input);
 
     //-------essentia
 	public:
@@ -68,6 +75,7 @@ class ofApp : public ofBaseApp{
         float strongPeakNorm;
         float strongDecay;
         float strongDecayNorm;
+        float danceability;
     
         vector<float> spectrum;
         vector<float> melBands;
@@ -76,6 +84,10 @@ class ofApp : public ofBaseApp{
         vector<float> tristimulus;
     
         bool isOnset;
+    
+    
+        ofxPanel gui;
+    
     
         //-----filterbank
     
@@ -110,5 +122,6 @@ class ofApp : public ofBaseApp{
             
             ofxPanel bandsGui;
             ofPolyline bandPlot;
+
 		
 };
