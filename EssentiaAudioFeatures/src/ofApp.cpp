@@ -70,10 +70,10 @@ using boost::asio::ip::udp;
 boost::asio::io_service io_service;
 #define PORT "1331"
 
+
 //---------------------Global Var: OSC-------------------------------------
 
 using namespace oscpkt;
-PacketWriter pkt, pkt2;
 Message msg;
 const void * message;
 int size;
@@ -550,6 +550,7 @@ void ofApp::update(){
     
     // this is the PACKAGING section
     // Make  & Send OSC Object
+    PacketWriter pkt = PacketWriter();
     pkt.startBundle();
     pkt.addMessage(msg.init("/essentia/rms").pushFloat(rms));
     pkt.addMessage(msg.init("/essentia/power").pushFloat(power));
@@ -627,10 +628,9 @@ void ofApp::update(){
         client.send_osc(message, size);
     }
     msg.clear();
-    //pkt.Reset();
-    pkt.endBundle();
     
     // Make  & Send Second OSC Object (first bundle was full)
+    PacketWriter pkt2 = PacketWriter();
     pkt2.startBundle();
     
     int spectrum_size=spectrum.size(); //257
@@ -660,9 +660,6 @@ void ofApp::update(){
         client.send_osc(message, size);
     }
     msg.clear();
-    //pkt2.Reset();
-    pkt2.endBundle();
-
    
 }
 
