@@ -66,8 +66,8 @@ float triggerThreshold = 0.8;
 //---------------------Global Var: ASIO------------------------------------
 
 std::string s;
-using boost::asio::ip::udp;
-boost::asio::io_service io_service;
+using asio::ip::udp;
+asio::io_service io_service;
 #define PORT "1331"
 
 
@@ -84,7 +84,7 @@ class UDPClient
 {
 public:
     UDPClient(
-              boost::asio::io_service& io_service,
+              asio::io_service& io_service,
               const std::string& host,
               const std::string& port
               ) : io_service_(io_service), socket_(io_service, udp::endpoint(udp::v4(), 0)) {
@@ -100,15 +100,15 @@ public:
     }
     
     void send(const std::string& msg) {
-        socket_.send_to(boost::asio::buffer(msg, msg.size()), endpoint_);
+        socket_.send_to(asio::buffer(msg, msg.size()), endpoint_);
     }
     
     void send_osc(const void *msg, int size) {
-        socket_.send_to(boost::asio::buffer(msg, size), endpoint_);
+        socket_.send_to(asio::buffer(msg, size), endpoint_);
     }
     
 private:
-    boost::asio::io_service& io_service_;
+    asio::io_service& io_service_;
     udp::socket socket_;
     udp::endpoint endpoint_;
 };
@@ -576,7 +576,7 @@ void ofApp::update(){
     pkt.addMessage(msg.init("/essentia/strongDecayNorm").pushFloat(strongDecayNorm));
     
     // Boolean, mapped to onset.
-    pkt.addMessage(msg.init("/essentia/isOnset").pushFloat(isOnset));
+    pkt.addMessage(msg.init("/essentia/isOnset").pushBool(isOnset));
     
     
     // Vector Parameters
