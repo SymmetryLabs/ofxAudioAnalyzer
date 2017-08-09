@@ -2,6 +2,9 @@
 <Workspace
    version = "1.0">
    <FileRef
+      location = "group:../../oldEssentiaDualChannels/File">
+   </FileRef>
+   <FileRef
       location = "self:/Users/mandalin/Documents/Repos/SymmetryLabsRepos/AudioFeatures/OpenFrameworks/of_v0.9.4_osx_release/addons/ofxAudioAnalyzer/example-rmsInput/EssentiaAudioFeatures.xcodeproj">
    </FileRef>
 </Workspace>

@@ -30,6 +30,7 @@
 #include "algorithmfactory.h"
 #include "essentiamath.h"
 #include "pool.h"
+#include "algorithm.h"
 
 using namespace std;
 using namespace essentia;
@@ -51,6 +52,7 @@ using namespace standard;
 #define DCT_COEFF_NUM 13
 #define PITCH_SALIENCE_FUNC_NUM 10
 #define TRISTIMULUS_BANDS_NUM 3
+#define PRED_PITCH_MELODIA_BANDS_NUM 
 
 #define HPCP_SIZE 12
 #define HPCP_MIN_FREQ 40.0//hz
@@ -126,15 +128,20 @@ private:
     ofxAABaseAlgorithm oddToEven;
     ofxAABaseAlgorithm strongPeak;
     ofxAABaseAlgorithm strongDecay;
+    ofxAABaseAlgorithm danceability;
     
     ofxAAOneVectorOutputAlgorithm spectrum;
     ofxAAOneVectorOutputAlgorithm melBands;
     ofxAAOneVectorOutputAlgorithm dct;//MFCC
     ofxAAOneVectorOutputAlgorithm hpcp;
     ofxAAOneVectorOutputAlgorithm tristimulus;
+    ofxAAOneVectorOutputAlgorithm BeatTrackDeg;
+    ofxAAOneVectorOutputAlgorithm pitchPredMelodia;
+
     //MultiPitch
     ofxAAPitchSalienceFunctionPeaksAlgorithm pitchSalienceFunctionPeaks;
     ofxAAMultiPitchKlapuriAlgorithm multiPitchKlapuri;
+    
     
     //Algorithms for internal functionality:
     ofxAAOneVectorOutputAlgorithm dcremoval;
@@ -145,6 +152,8 @@ private:
     ofxAAPeaksAlgorithm harmonicPeaks;
     ofxAAOneVectorOutputAlgorithm pitchSalienceFunction;
     ofxAAOnsetsAlgorithm onsets;
+    
+//    Algorithm* beatDetector;
     
     //--------
     int _samplerate;

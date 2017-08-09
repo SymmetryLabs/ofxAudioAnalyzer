@@ -15,7 +15,7 @@ void ofApp::setup(){
     
     audioAnalyzer.setup(sampleRate, bufferSize, channels);
     
-    //player.load("beatTrack.wav");
+//    player.load("beatTrack.wav");
     
     
     

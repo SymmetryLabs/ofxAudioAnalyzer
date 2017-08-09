@@ -1,0 +1,12 @@
+language: objective-c
+matrix:
+  include:
+    - os: osx
+      env: TYPE="libc++"
+    - os: osx
+      env: TYPE="libstdc++"
+script: 
+    - scripts/build-$TYPE
+git:
+    depth: 10
+

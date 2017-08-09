@@ -8,6 +8,8 @@
 #include "ofSoundStream.h"
 #include "ofxGui.h"
 #include <math.h> 
+#include "../BTrack/src/BTrack.h"           //for BTrack beat detection
+
 
 //---------------------Global Var: Memory Frames ----------------------------
 
@@ -61,7 +63,14 @@ float dissonanceMemory[] = {0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.
 bool isHFCDelay = false;
 float nextHFCVal = 0.7;
 // Different features require different threshold values.
-float triggerThreshold = 0.8;
+float triggerThreshold = 0.7;
+
+bool isRMSDelay = false;
+float prevRMSVal = 0.0;
+float nextRMSVal = 0.7;
+
+float rmsGlobalMin = 10000;
+float rmsGlobalMax = 0;
 
 //---------------------Global Var: ASIO------------------------------------
 
@@ -152,47 +161,13 @@ float ofApp::normalize(float input, float minVal, float maxVal) {
         return 0;
     }
     float result = (input - minVal) / (maxVal - minVal);
-    cout<<"input: "<<input<<endl;
-    cout<<"minVal: "<<minVal<<endl;
-    cout<<"maxVal: "<<maxVal<<endl;
-    cout<<"result: "<<result<<endl;
+//    cout<<"input: "<<input<<endl;
+//    cout<<"minVal: "<<minVal<<endl;
+//    cout<<"maxVal: "<<maxVal<<endl;
+//    cout<<"result: "<<result<<endl;
     return result;
 }
 
-//
-//float ofApp::trigger(str feature, float input, float featureTriggerThreshold) {
-//    enum triggerableFeatures {"hfc" = 1, "centroid" = 2};
-//    switch(feature) {
-//        case hfc:
-//            if (input > featureTriggerThreshold) {
-//                isHFCDelay = true;
-//                nextHFCVal = hfc * 0.9;
-//            } else {
-//                if (isHFCDelay) {
-//                    hfc = nextHFCVal;
-//                    nextHFCVal = hfc * 0.9;
-//                } else {
-//                    isHFCDelay = false;
-//                }
-//            }
-//            break;
-//        case centroid:
-//            if (input > featureTriggerThreshold) {
-//                isHFCDelay = true;
-//                nextHFCVal = hfc * 0.9;
-//            } else {
-//                if (isHFCDelay) {
-//                    hfc = nextHFCVal;
-//                    nextHFCVal = hfc * 0.9;
-//                } else {
-//                    isHFCDelay = false;
-//                }
-//            }
-//            
-//    }
-//
-//
-//}
 
 //--------------------------------------------------------------
 void ofApp::setup(){
@@ -207,6 +182,8 @@ void ofApp::setup(){
     gui.setup();
     gui.setPosition(20, 150);
     gui.add(smoothing.setup  ("Smoothing", 0.0, 0.0, 1.0));
+    
+    //--------------ofxBeat setup
     
     
 
@@ -243,7 +220,7 @@ void ofApp::setup(){
     
     //--------------filterbank setup
     
-    ofSetVerticalSync(true);
+    ofSetVerticalSync(true); // syncs up the update with the draw (update only gets called once before each draw)
     ofBackground(54, 54, 54);
     ofSetFrameRate(20);
     
@@ -252,10 +229,11 @@ void ofApp::setup(){
     int midiMin = 21;
     int midiMax = 108;
     
-    filterBank.setup(bufferSize, midiMin, midiMax, inChannels, BANDWIDTH, sampleRate, 1.0);
+    
+    //filterbank is used for polyphonic pitch/chords stuff
+    filterBank.setup(bufferSize, midiMin, midiMax, inChannels, BANDWIDTH, sampleRate, 10);
     filterBank.setColor(ofColor::orange);
-
-
+    
     
 }
 
@@ -270,7 +248,7 @@ void ofApp::update(){
     rms_l = audioAnalyzer.getValue(RMS, 0, smooth);
     rms_r = audioAnalyzer.getValue(RMS, 1, smooth);
 
-    
+
     //-:get Values:
     rms     = audioAnalyzer.getValue(RMS, 0, smoothing);
     power   = audioAnalyzer.getValue(POWER, 0, smoothing);
@@ -285,6 +263,9 @@ void ofApp::update(){
     oddToEven = audioAnalyzer.getValue(ODD_TO_EVEN, 0, smoothing);
     strongPeak = audioAnalyzer.getValue(STRONG_PEAK, 0, smoothing);
     strongDecay = audioAnalyzer.getValue(STRONG_DECAY, 0, smoothing);
+    danceability = audioAnalyzer.getValue(DANCEABILITY, 0, smoothing);
+    cout<<"FUCKING DANCE: "<<danceability;
+    
     //Normalized values for graphic meters:
     pitchFreqNorm   = audioAnalyzer.getValue(PITCH_FREQ, 0, smoothing, TRUE);
     hfcNorm     = audioAnalyzer.getValue(HFC, 0, smoothing, TRUE);
@@ -302,14 +283,15 @@ void ofApp::update(){
     mfcc = audioAnalyzer.getValues(MFCC, 0, smoothing);
     hpcp = audioAnalyzer.getValues(HPCP, 0, smoothing);
     tristimulus = audioAnalyzer.getValues(TRISTIMULUS, 0, smoothing);
+    beatTrackDeg = audioAnalyzer.getValues(BEAT_TRACK_DEG, 0, smoothing);
     
     //Boolean Parameter
     isOnset = audioAnalyzer.getOnsetValue(0);
     
     //For Testing
-    std::cout<<"centroidNorm: "<<centroidNorm<<endl ;
-    std::cout<<"strongDecayNorm: "<<strongDecayNorm<<endl ;
-    std::cout<<"HFC Essentia Norm: "<<hfcNorm<<endl;
+//    std::cout<<"centroidNorm: "<<centroidNorm<<endl ;
+//    std::cout<<"strongDecayNorm: "<<strongDecayNorm<<endl ;
+//    std::cout<<"HFC Essentia Norm: "<<hfcNorm<<endl;
     
     //Adding current audio frame to each feature's MemoryFrame
     rmsMemory[currFrame] = rms;
@@ -336,18 +318,52 @@ void ofApp::update(){
     float rmsLocalMax = 0.0;
     float rmsLocalMin = 10000;
     for (int i = 0; i < numMemoryFrames; i++) {
-        if (rmsMemory[i] < rmsLocalMin) {
-            rmsLocalMin = rmsMemory[i];
+        float currRMS = rmsMemory[i];
+        if (currRMS < rmsLocalMin) {
+            rmsLocalMin = currRMS;
         }
-        if (rmsMemory[i] > rmsLocalMax) {
-            rmsLocalMax = rmsMemory[i];
+        if (currRMS > rmsLocalMax) {
+            rmsLocalMax = currRMS;
+        }
+        if (currRMS < rmsGlobalMin) {
+            rmsGlobalMin = currRMS;
+        }
+        if (currRMS > rmsGlobalMax) {
+            rmsGlobalMax = currRMS;
         }
     }
-    cout<<"rms min and rms max: "<<rmsLocalMin<<", "<<rmsLocalMax<<endl;
+//    cout<<"rms min and rms max: "<<rmsLocalMin<<", "<<rmsLocalMax<<endl;
     float normalizedRMS = normalize(rms, rmsLocalMin, rmsLocalMax);
-    cout<<"normalizedRMS: "<<normalizedRMS<<endl;
+//    cout<<"normalizedRMS: "<<normalizedRMS<<endl;
     rms = normalizedRMS;
     
+    if (abs(rms - prevRMSVal) < 0.2) { // another value to experiment with
+        rms = prevRMSVal;
+    } else {
+        prevRMSVal = rms;
+    }
+    
+    if (rms > triggerThreshold) {
+        isRMSDelay = true;
+        nextRMSVal = rms * 0.9;
+    } else {
+        if (isRMSDelay) {
+            rms = nextRMSVal;
+            nextRMSVal = rms * 0.9;
+        } else {
+            isRMSDelay = false;
+        }
+    }
+    
+    float total = 0.0;
+    for (int i = 0; i < 30; i ++) { // experiment with this range
+        total += rmsMemory[i];
+    }
+    float average = total / 30.0;
+//    if (average > 0.7) {
+//        rms = 0.9; // used to be rms = average
+//    }
+//    
     // ------------------ POWER ------------------
     float powerLocalMax = 0.0;
     float powerLocalMin = 10000;
@@ -361,24 +377,24 @@ void ofApp::update(){
     }
     
     float normalizedPower = normalize(power, powerLocalMin, powerLocalMax);
-    cout<<"normalizedPower: "<<normalizedPower<<endl;
+//    cout<<"normalizedPower: "<<normalizedPower<<endl;
     power = normalizedPower;
     
     // ------------------ PITCH FREQUENCY ------------------
-    float pitchFreqLocalMax = 0.0;
-    float pitchFreqLocalMin = 10000;
-    for (int i = 0; i < numMemoryFrames; i++) {
-        if (pitchFreqMemory[i] < pitchFreqLocalMin) {
-            pitchFreqLocalMin = pitchFreqMemory[i];
-        }
-        if (pitchFreqMemory[i] > pitchFreqLocalMax) {
-            pitchFreqLocalMax = pitchFreqMemory[i];
-        }
-    }
-    
-    float normalizedPitchFreq = normalize(pitchFreq, pitchFreqLocalMin, pitchFreqLocalMax);
-    cout<<"normalizedPitchFreq: "<<normalizedPitchFreq<<endl;
-    pitchFreq = normalizedPitchFreq;
+//    float pitchFreqLocalMax = 0.0;
+//    float pitchFreqLocalMin = 10000;
+//    for (int i = 0; i < numMemoryFrames; i++) {
+//        if (pitchFreqMemory[i] < pitchFreqLocalMin) {
+//            pitchFreqLocalMin = pitchFreqMemory[i];
+//        }
+//        if (pitchFreqMemory[i] > pitchFreqLocalMax) {
+//            pitchFreqLocalMax = pitchFreqMemory[i];
+//        }
+//    }
+//    
+//    float normalizedPitchFreq = normalize(pitchFreq, pitchFreqLocalMin, pitchFreqLocalMax);
+//    cout<<"normalizedPitchFreq: "<<normalizedPitchFreq<<endl;
+//    pitchFreq = normalizedPitchFreq;
     
     // ------------------ PITCH CONFIDENCE ------------------
     float pitchConfLocalMax = 0.0;
@@ -393,7 +409,7 @@ void ofApp::update(){
     }
     
     float normalizedPitchConf = normalize(pitchConf, pitchConfLocalMin, pitchConfLocalMax);
-    cout<<"normalizedPitchConf: "<<normalizedPitchConf<<endl;
+//    cout<<"normalizedPitchConf: "<<normalizedPitchConf<<endl;
     pitchConf = normalizedPitchConf;
     
     // ------------------ PITCH SALIENCE ------------------
@@ -409,7 +425,7 @@ void ofApp::update(){
     }
     
     float normalizedPitchSali = normalize(pitchSalience, pitchSaliLocalMin, pitchSaliLocalMax);
-    cout<<"normalizedPitchSali: "<<normalizedPitchSali<<endl;
+//    cout<<"normalizedPitchSali: "<<normalizedPitchSali<<endl;
     pitchSalience = normalizedPitchSali;
     
     // ------------------ INHARMONICITY ------------------
@@ -425,7 +441,7 @@ void ofApp::update(){
     }
     
     float normalizedInharmonicity = normalize(inharmonicity, inharmonicityLocalMin, inharmonicityLocalMax);
-    cout<<"normalizedInharmonicity: "<<normalizedInharmonicity<<endl;
+//    cout<<"normalizedInharmonicity: "<<normalizedInharmonicity<<endl;
     inharmonicity = normalizedInharmonicity;
 
 
@@ -475,7 +491,7 @@ void ofApp::update(){
     }
     
     float normalizedSpecComp = normalize(specComp, specCompLocalMin, specCompLocalMax);
-    cout<<"normalizedSpecComp: "<<normalizedSpecComp<<endl;
+//    cout<<"normalizedSpecComp: "<<normalizedSpecComp<<endl;
 //    float logSpecComp = inverseLogScale(normalizedSpecComp, hfcLocalMin, hfcLocalMax);
     specComp = normalizedSpecComp;
     
@@ -493,7 +509,7 @@ void ofApp::update(){
     }
     
     float normalizedCentroid = normalize(centroid, centroidLocalMin, centroidLocalMax);
-    cout<<"normalizedCentroid: "<<normalizedCentroid<<endl;
+//    cout<<"normalizedCentroid: "<<normalizedCentroid<<endl;
     centroid = normalizedCentroid;
 
     
@@ -510,7 +526,7 @@ void ofApp::update(){
     }
     
     float normalizedDissonance = normalize(dissonance, dissonanceLocalMin, dissonanceLocalMax);
-    cout<<"normalizedDissonance: "<<normalizedDissonance<<endl;
+//    cout<<"normalizedDissonance: "<<normalizedDissonance<<endl;
     dissonance = normalizedDissonance;
     
     // ------------------ ROLL OFF ------------------
@@ -526,7 +542,7 @@ void ofApp::update(){
     }
     
     float normalizedRollOff = normalize(rollOff, rollOffLocalMin, rollOffLocalMax);
-    cout<<"normalizedRollOff: "<<normalizedRollOff<<endl;
+//    cout<<"normalizedRollOff: "<<normalizedRollOff<<endl;
     rollOff = normalizedRollOff;
     
     // ------------------ STRONG PEAK ------------------
@@ -542,115 +558,147 @@ void ofApp::update(){
     }
     
     float normalizedStrongPeak = normalize(strongPeak, strongPeakLocalMin, strongPeakLocalMax);
-    cout<<"normalizedStrongPeak: "<<normalizedStrongPeak<<endl;
+//    cout<<"normalizedStrongPeak: "<<normalizedStrongPeak<<endl;
     strongPeak = normalizedStrongPeak;
-    
-  
-    
-    
-    // this is the PACKAGING section
-    // Make  & Send OSC Object
-    PacketWriter pkt = PacketWriter();
-    pkt.startBundle();
-    pkt.addMessage(msg.init("/essentia/rms").pushFloat(rms));
-    pkt.addMessage(msg.init("/essentia/power").pushFloat(power));
-    pkt.addMessage(msg.init("/essentia/pitchFreq").pushFloat(pitchFreq));
-    pkt.addMessage(msg.init("/essentia/pitchConf").pushFloat(pitchConf));
-    pkt.addMessage(msg.init("/essentia/pitchSalience").pushFloat(pitchSalience));
-    pkt.addMessage(msg.init("/essentia/inharmonicity").pushFloat(inharmonicity));
-    pkt.addMessage(msg.init("/essentia/hfc").pushFloat(hfc));
-    pkt.addMessage(msg.init("/essentia/specComp").pushFloat(specComp));
-    pkt.addMessage(msg.init("/essentia/centroid").pushFloat(centroid));
-    pkt.addMessage(msg.init("/essentia/rollOff").pushFloat(rollOff));
-    pkt.addMessage(msg.init("/essentia/oddToEven").pushFloat(oddToEven));
-    pkt.addMessage(msg.init("/essentia/strongPeak").pushFloat(strongPeak));
-    pkt.addMessage(msg.init("/essentia/strongDecay").pushFloat(strongDecay));
-    //Normalized values for graphic meters:
-    pkt.addMessage(msg.init("/essentia/pitchFreqNorm").pushFloat(pitchFreqNorm));
-    pkt.addMessage(msg.init("/essentia/hfcNorm").pushFloat(hfcNorm));
-    pkt.addMessage(msg.init("/essentia/specCompNorm").pushFloat(specCompNorm));
-    pkt.addMessage(msg.init("/essentia/centroidNorm").pushFloat(centroidNorm));
-    pkt.addMessage(msg.init("/essentia/rollOffNorm").pushFloat(rollOffNorm));
-    pkt.addMessage(msg.init("/essentia/oddToEvenNorm").pushFloat(oddToEvenNorm));
-    pkt.addMessage(msg.init("/essentia/strongPeakNorm").pushFloat(strongPeakNorm));
-    pkt.addMessage(msg.init("/essentia/strongDecayNorm").pushFloat(strongDecayNorm));
-    
-    // Boolean, mapped to onset.
-    pkt.addMessage(msg.init("/essentia/isOnset").pushFloat(isOnset));
-    
-    
-    // Vector Parameters
-    Message temp_msg_pter;
-    int melBands_size=melBands.size(); //24
-    temp_msg_pter = msg.init("/essentia/melBands");
-    for(int n=0; n<melBands_size; n++)
-    {   temp_msg_pter.pushFloat((float)melBands[n]);
-    }
-    pkt.addMessage(temp_msg_pter);
-    
-    int mfcc_size=mfcc.size();  //13
-    temp_msg_pter = msg.init("/essentia/mfcc");
-    for(int n=0; n<mfcc_size; n++)
-    {   temp_msg_pter.pushFloat((float)mfcc[n]);
-    }
-    pkt.addMessage(temp_msg_pter);
-    
-    int tristimulus_size=tristimulus.size(); //3
-    temp_msg_pter = msg.init("/essentia/tristimulus");
-    for(int n=0; n<tristimulus_size; n++)
-    {   temp_msg_pter.pushFloat((float)tristimulus[n]);
-    }
-    pkt.addMessage(temp_msg_pter);
-    
-    // Polyphonic Pitch from Filterbank
-    float * polyphonic_pitch_pointer;
-    float log_smth_energy;
-    
-    polyphonic_pitch_pointer=filterBank.getSmthEnergies();
-    
-    log_smth_energy = LIN2dB (polyphonic_pitch_pointer[filterBank.midiMinVar]);
-    temp_msg_pter= msg.init("/essentia/PolyphonicPitch");
-    std::cout<<"Midi Min= "<<filterBank.midiMinVar<<endl;
-    std::cout<<"Midi Min= "<<filterBank.midiMaxVar<<endl;
-    for(int n=filterBank.midiMinVar; n<filterBank.midiMaxVar; n++)  // 87
-    {   log_smth_energy = LIN2dB (polyphonic_pitch_pointer[n]);
-        std::cout<<log_smth_energy<<" ";
-        temp_msg_pter.pushFloat(log_smth_energy);
-    }
-    pkt.addMessage(temp_msg_pter);
-    
-    std::cout<<endl;
 
-    pkt.endBundle();
-    if (pkt.isOk()) {
-        message=pkt.packetData();
-        size= pkt.packetSize();
-        client.send_osc(message, size);
-    }
-    msg.clear();
+//    ofxBeatObj.update(ofGetElapsedTimeMillis());
+//    float kick = ofxBeatObj.kick();
+//    float snare = ofxBeatObj.snare();
+//    float hihat = ofxBeatObj.hihat();
     
-    // Make  & Send Second OSC Object (first bundle was full)
+    
+    // -------------------------- this is the PACKAGING section --------------------------
+    // Make  & Send OSC Object
+//    PacketWriter pkt = PacketWriter();
+//    pkt.startBundle();
+//    pkt.addMessage(msg.init("/essentia/rms").pushFloat(rms));
+//    pkt.addMessage(msg.init("/essentia/power").pushFloat(power));
+//    pkt.addMessage(msg.init("/essentia/pitchFreq").pushFloat(pitchFreq));
+//    pkt.addMessage(msg.init("/essentia/pitchConf").pushFloat(pitchConf));
+//    pkt.addMessage(msg.init("/essentia/pitchSalience").pushFloat(pitchSalience));
+//    pkt.addMessage(msg.init("/essentia/inharmonicity").pushFloat(inharmonicity));
+//    pkt.addMessage(msg.init("/essentia/hfc").pushFloat(hfc));
+//    pkt.addMessage(msg.init("/essentia/specComp").pushFloat(specComp));
+//    pkt.addMessage(msg.init("/essentia/centroid").pushFloat(centroid));
+//    pkt.addMessage(msg.init("/essentia/rollOff").pushFloat(rollOff));
+//    pkt.addMessage(msg.init("/essentia/oddToEven").pushFloat(oddToEven));
+//    pkt.addMessage(msg.init("/essentia/strongPeak").pushFloat(strongPeak));
+//    pkt.addMessage(msg.init("/essentia/strongDecay").pushFloat(strongDecay));
+//    //Normalized values for graphic meters:
+//    pkt.addMessage(msg.init("/essentia/pitchFreqNorm").pushFloat(pitchFreqNorm));
+//    pkt.addMessage(msg.init("/essentia/hfcNorm").pushFloat(hfcNorm));
+//    pkt.addMessage(msg.init("/essentia/specCompNorm").pushFloat(specCompNorm));
+//    pkt.addMessage(msg.init("/essentia/centroidNorm").pushFloat(centroidNorm));
+//    pkt.addMessage(msg.init("/essentia/rollOffNorm").pushFloat(rollOffNorm));
+//    pkt.addMessage(msg.init("/essentia/oddToEvenNorm").pushFloat(oddToEvenNorm));
+//    pkt.addMessage(msg.init("/essentia/strongPeakNorm").pushFloat(strongPeakNorm));
+//    pkt.addMessage(msg.init("/essentia/strongDecayNorm").pushFloat(strongDecayNorm));
+//    
+//    // Boolean, mapped to onset.
+//    pkt.addMessage(msg.init("/essentia/isOnset").pushBool(isOnset));
+//    
+//    
+//    // -------------------------- Vector Parameters --------------------------
+    Message temp_msg_pter;
+//    int melBands_size=melBands.size(); //24
+//    temp_msg_pter = msg.init("/essentia/melBands");
+//    for(int n=0; n<melBands_size; n++)
+//    {   temp_msg_pter.pushFloat((float)melBands[n]);
+//    }
+//    pkt.addMessage(temp_msg_pter);
+//    
+//    int mfcc_size=mfcc.size();  //13
+//    temp_msg_pter = msg.init("/essentia/mfcc");
+//    for(int n=0; n<mfcc_size; n++)
+//    {   temp_msg_pter.pushFloat((float)mfcc[n]);
+//    }
+//    pkt.addMessage(temp_msg_pter);
+//    
+//    int tristimulus_size=tristimulus.size(); //3
+//    temp_msg_pter = msg.init("/essentia/tristimulus");
+//    for(int n=0; n<tristimulus_size; n++)
+//    {   temp_msg_pter.pushFloat((float)tristimulus[n]);
+//    }
+//    pkt.addMessage(temp_msg_pter);
+//    int beatTrackDeg_size = beatTrackDeg.size();
+//    temp_msg_pter = msg.init("/essentia/beatTrackerDegara");
+//    for (int n=0; n<beatTrackDeg_size; n++){
+//        temp_msg_pter.pushFloat((float)beatTrackDeg[n]);
+//    }
+//    pkt.addMessage(temp_msg_pter);
+//    
+//    pkt.endBundle();
+//    if (pkt.isOk()) {
+//        message=pkt.packetData();
+//        size= pkt.packetSize();
+//        client.send_osc(message, size);
+//        std::cout << "PACKET 1 OK" << std::endl;
+//    } else {
+//        std::cout << "PACKET 1 NOT OK" << std::endl;
+//    }
+//    msg.clear();
+    
+    
+        // -------------------------- Make  & Send Second OSC Object (first bundle was full) --------------------------
     PacketWriter pkt2 = PacketWriter();
     pkt2.startBundle();
     
-    int spectrum_size=spectrum.size(); //257
-    temp_msg_pter = msg.init("/essentia/spectrum");
-    for(int n=0; n<spectrum_size; n++)
-    {   temp_msg_pter.pushFloat((float)spectrum[n]);
+//    int spectrum_size=spectrum.size(); //257
+//    temp_msg_pter = msg.init("/essentia/spectrum");
+//    for(int n=0; n<spectrum_size; n++)
+//    {   temp_msg_pter.pushFloat((float)spectrum[n]);
+//    }
+//    pkt2.addMessage(temp_msg_pter);
+//
+//    int hpcp_size=hpcp.size();  //12
+////    std::cout<<endl<<"Hpcp Size: "<<hpcp_size<<endl;
+//    temp_msg_pter = msg.init("/essentia/hpcp");
+//    for(int n=0; n<hpcp_size; n++)
+//    {   temp_msg_pter.pushFloat((float)hpcp[n]);
+//    }
+//    pkt2.addMessage(temp_msg_pter);
+    
+//    pkt2.addMessage(msg.init("/aubio/onset").pushFloat(onset.thresholdedNovelty));
+//    pkt2.addMessage(msg.init("/aubio/midiPitch").pushFloat(pitch.latestPitch));
+//    pkt2.addMessage(msg.init("/aubio/bpm").pushFloat(beat.bpm));
+    
+    // -------------------------- Polyphonic Pitch from ofxFilterbank --------------------------
+    float* polyphonic_pitch_pointer;
+    float log_smth_energy;
+    float threshold = 0.02;
+    
+    polyphonic_pitch_pointer = filterBank.getSmthEnergies();
+    polyphonic_pitch.clear(); // reset it for this current iteration
+    
+    //    log_smth_energy = LIN2dB (polyphonic_pitch_pointer[filterBank.midiMinVar]);
+    temp_msg_pter = msg.init("/essentia/polyphonicPitch");
+    cout<<"midi min var: "<<filterBank.midiMinVar;
+    cout<<"midi max var: "<<filterBank.midiMaxVar;
+    for (int n=filterBank.midiMinVar; n<filterBank.midiMaxVar; n++) {
+        float smth_energy = polyphonic_pitch_pointer[n];
+        log_smth_energy = LIN2dB (polyphonic_pitch_pointer[n]);
+        //        cout<<"log smth energy"<<log_smth_energy;
+        //        cout<<"smth energy: "<<smth_energy;
+        if (smth_energy > threshold) {
+            string note = filterBank.midiToNote(n);
+            //            temp_msg_pter.pushStr(note);
+            temp_msg_pter.pushInt32(n);
+            polyphonic_pitch.push_back(std::make_pair(n, note));
+            //            cout<<"pitch note: "<<note;
+        }
+        else {
+            //            temp_msg_pter.pushStr("None");
+            temp_msg_pter.pushInt32(-1);
+            polyphonic_pitch.push_back(std::make_pair(-1, "None"));
+        }
+        //        temp_msg_pter.pushFloat(log_smth_energy);
     }
-    pkt2.addMessage(temp_msg_pter);
-
-    int hpcp_size=hpcp.size();  //12
-    std::cout<<endl<<"Hpcp Size: "<<hpcp_size<<endl;
-    temp_msg_pter = msg.init("/essentia/hpcp");
-    for(int n=0; n<hpcp_size; n++)
-    {   temp_msg_pter.pushFloat((float)hpcp[n]);
-    }
+    cout<<"pitch vector length: "<<polyphonic_pitch.size()<<endl;
     pkt2.addMessage(temp_msg_pter);
     
-    pkt2.addMessage(msg.init("/aubio/onset").pushFloat(onset.thresholdedNovelty));
-    pkt2.addMessage(msg.init("/aubio/midiPitch").pushFloat(pitch.latestPitch));
-    pkt2.addMessage(msg.init("/aubio/bpm").pushFloat(beat.bpm));
+    std::cout<<endl;
+
+
     
     //Close the second bundle
     pkt2.endBundle();
@@ -658,10 +706,17 @@ void ofApp::update(){
         message=pkt2.packetData();
         size= pkt2.packetSize();
         client.send_osc(message, size);
+        std::cout << "PACKET 2 OK" << std::endl;
+    } else {
+        std::cout << "PACKET 2 NOT OK" << std::endl;
     }
     msg.clear();
+    
+//    ofxBeatObj.audioReceived(input, bufferSize, nChannels);
+
    
 }
+
 
 //--------------------------------------------------------------
 void ofApp::draw(){
@@ -677,8 +732,16 @@ void ofApp::draw(){
     float value, valueNorm;
     
     ofSetColor(255);
+    value = danceability;
+    string strValue = "danceability: " + ofToString(value, 2);
+    ofDrawBitmapString(strValue, xpos, ypos);
+    ofSetColor(ofColor::cyan);
+    ofDrawRectangle(xpos, ypos+5, value * mw, 10);
+    
+    ypos += 50;
+    ofSetColor(255);
     value = rms;
-    string strValue = "RMS: " + ofToString(value, 2);
+    strValue = "RMS: " + ofToString(value, 2);
     ofDrawBitmapString(strValue, xpos, ypos);
     ofSetColor(ofColor::cyan);
     ofDrawRectangle(xpos, ypos+5, value * mw, 10);
@@ -691,209 +754,405 @@ void ofApp::draw(){
     ofSetColor(ofColor::cyan);
     ofDrawRectangle(xpos, ypos+5, value * mw, 10);
     
-    ypos += 50;
-    ofSetColor(255);
-    value = pitchFreq;
-    valueNorm = pitchFreqNorm;
-    strValue = "Pitch Frequency: " + ofToString(value, 2) + " hz.";
-    ofDrawBitmapString(strValue, xpos, ypos);
-    ofSetColor(ofColor::cyan);
-    // if we normalize it ourselves (as opposed to sending out essentia's normalized version) then (cont.)
-    // we actually get visible results!!!
-    ofDrawRectangle(xpos, ypos+5, value * mw, 10);
+    ofTranslate(300, 0);
 
-    
-    ypos += 50;
-    ofSetColor(255);
-    value = pitchConf;
-    strValue = "Pitch Confidence: " + ofToString(value, 2);
-    ofDrawBitmapString(strValue, xpos, ypos);
-    ofSetColor(ofColor::cyan);
-    ofDrawRectangle(xpos, ypos+5, value * mw, 10);
-    
-    ypos += 50;
-    ofSetColor(255);
-    value = pitchSalience;
-    strValue = "Pitch Salience: " + ofToString(value, 2);
-    ofDrawBitmapString(strValue, xpos, ypos);
-    ofSetColor(ofColor::cyan);
-    ofDrawRectangle(xpos, ypos+5, value * mw, 10);
-    
-    ypos += 50;
-    ofSetColor(255);
-    value = inharmonicity;
-    strValue = "Inharmonicity: " + ofToString(value, 2);
-    ofDrawBitmapString(strValue, xpos, ypos);
-    ofSetColor(ofColor::cyan);
-    ofDrawRectangle(xpos, ypos+5, value * mw, 10);
-    
-    ypos += 50;
-    ofSetColor(255);
-    value = hfc;
-    valueNorm = hfcNorm;
-    strValue = "HFC: " + ofToString(value, 2);
-    ofDrawBitmapString(strValue, xpos, ypos);
-    ofSetColor(ofColor::cyan);
-    // if we normalize it ourselves (as opposed to sending out essentia's normalized version) then (cont.)
-    // we actually get visible results!!!
-    ofDrawRectangle(xpos, ypos+5, value * mw, 10);
-    
-    ypos += 50;
-    ofSetColor(255);
-    value = specComp;
-    valueNorm = specCompNorm;
-    strValue = "Spectral Complexity: " + ofToString(value, 2);
-    ofDrawBitmapString(strValue, xpos, ypos);
-    ofSetColor(ofColor::cyan);
-    ofDrawRectangle(xpos, ypos+5, valueNorm * mw, 10);
-    
-    ypos += 50;
-    ofSetColor(255);
-    value = centroid;
-    valueNorm = centroidNorm;
-    strValue = "Centroid: " + ofToString(value, 2);
-    ofDrawBitmapString(strValue, xpos, ypos);
-    ofSetColor(ofColor::cyan);
-    ofDrawRectangle(xpos, ypos+5, valueNorm * mw, 10);
-    
-    ypos += 50;
-    ofSetColor(255);
-    value = dissonance;
-    strValue = "Dissonance: " + ofToString(value, 2);
-    ofDrawBitmapString(strValue, xpos, ypos);
-    ofSetColor(ofColor::cyan);
-    ofDrawRectangle(xpos, ypos+5, value * mw, 10);
-    
-    ypos += 50;
-    ofSetColor(255);
-    value = rollOff;
-    valueNorm = rollOffNorm;
-    strValue = "Roll Off: " + ofToString(value, 2);
-    ofDrawBitmapString(strValue, xpos, ypos);
-    ofSetColor(ofColor::cyan);
-    ofDrawRectangle(xpos, ypos+5, value * mw , 10);
-    
-    ypos += 50;
-    ofSetColor(255);
-    value = oddToEven;
-    valueNorm = oddToEvenNorm;
-    strValue = "Odd To Even Harmonic Energy Ratio: " + ofToString(value, 2);
-    ofDrawBitmapString(strValue, xpos, ypos);
-    ofSetColor(ofColor::cyan);
-    ofDrawRectangle(xpos, ypos+5, valueNorm * mw, 10);
-    
-    ypos += 50;
-    ofSetColor(255);
-    value = strongPeak;
-    valueNorm = strongPeakNorm;
-    strValue = "Strong Peak: " + ofToString(value, 2);
-    ofDrawBitmapString(strValue, xpos, ypos);
-    ofSetColor(ofColor::cyan);
-    ofDrawRectangle(xpos, ypos+5, value * mw, 10);
-    
-    ypos += 50;
-    ofSetColor(255);
-    value = strongDecay;
-    valueNorm = strongDecayNorm;
-    strValue = "Strong Decay: " + ofToString(value, 2);
-    ofDrawBitmapString(strValue, xpos, ypos);
-    ofSetColor(ofColor::cyan);
-    ofDrawRectangle(xpos, ypos+5, valueNorm * mw, 10);
-    
-    ypos += 50;
-    ofSetColor(255);
-    value = isOnset;
-    strValue = "Onsets: " + ofToString(value);
-    ofDrawBitmapString(strValue, xpos, ypos);
-    ofSetColor(ofColor::cyan);
-    ofDrawRectangle(xpos, ypos+5, value * mw, 10);
-    
-    ofPopMatrix();
-    
-    //-Vector Values Algorithms:
-    
-    ofPushMatrix();
-    
-    ofTranslate(700, 0);
-    
     int graphH = 75;
     int yoffset = graphH + 50;
     ypos = 30;
     
     ofSetColor(255);
-    ofDrawBitmapString("Spectrum: ", 0, ypos);
+    ofDrawBitmapString("BeatTrackDeg: ", 0, ypos);
     ofPushMatrix();
     ofTranslate(0, ypos);
     ofSetColor(ofColor::cyan);
-    float bin_w = (float) mw / spectrum.size();
-    for (int i = 0; i < spectrum.size(); i++){
-        float scaledValue = ofMap(spectrum[i], DB_MIN, DB_MAX, 0.0, 1.0, true);//clamped value
+    float bin_w = (float) mw / beatTrackDeg.size();
+//    cout<<"beattrackdeg: "<<beatTrackDeg;
+    for (int i = 0; i < beatTrackDeg.size(); i++){
+        float scaledValue = ofMap(beatTrackDeg[i], DB_MIN, DB_MAX, 0.0, 1.0, true);//clamped value
         float bin_h = -1 * (scaledValue * graphH);
         ofDrawRectangle(i*bin_w, graphH, bin_w, bin_h);
     }
     ofPopMatrix();
+//    
+//    ypos += 50;
+//    ofSetColor(255);
+//    value = pitchFreq;
+//    valueNorm = pitchFreqNorm;
+//    strValue = "Pitch Frequency: " + ofToString(value, 2) + " hz.";
+//    ofDrawBitmapString(strValue, xpos, ypos);
+//    ofSetColor(ofColor::cyan);
+//    // if we normalize it ourselves (as opposed to sending out essentia's normalized version) then (cont.)
+//    // we actually get visible results
+//    
+//    // Essentia's normalized version keeps the notes in the range that makes sense
+//    // see http://www.phy.mtu.edu/~suits/notefreqs.html
+//    // The range is from 16.35 Hz (C_0) to 7902.13 Hz (B_8)
+//    // But for some reason, now the GUI is broken.
+//    ofDrawRectangle(xpos, ypos+5, valueNorm * mw, 10);
+//
+//    
+//    ypos += 50;
+//    ofSetColor(255);
+//    value = pitchConf;
+//    strValue = "Pitch Confidence: " + ofToString(value, 2);
+//    ofDrawBitmapString(strValue, xpos, ypos);
+//    ofSetColor(ofColor::cyan);
+//    ofDrawRectangle(xpos, ypos+5, value * mw, 10);
+//    
+//    ypos += 50;
+//    ofSetColor(255);
+//    value = pitchSalience;
+//    strValue = "Pitch Salience: " + ofToString(value, 2);
+//    ofDrawBitmapString(strValue, xpos, ypos);
+//    ofSetColor(ofColor::cyan);
+//    ofDrawRectangle(xpos, ypos+5, value * mw, 10);
+//    
+//    ypos += 50;
+//    ofSetColor(255);
+//    value = inharmonicity;
+//    strValue = "Inharmonicity: " + ofToString(value, 2);
+//    ofDrawBitmapString(strValue, xpos, ypos);
+//    ofSetColor(ofColor::cyan);
+//    ofDrawRectangle(xpos, ypos+5, value * mw, 10);
+//    
+//    ypos += 50;
+//    ofSetColor(255);
+//    value = hfc;
+//    valueNorm = hfcNorm;
+//    strValue = "HFC: " + ofToString(value, 2);
+//    ofDrawBitmapString(strValue, xpos, ypos);
+//    ofSetColor(ofColor::cyan);
+//    // if we normalize it ourselves (as opposed to sending out essentia's normalized version) then (cont.)
+//    // we actually get visible results!!!
+//    ofDrawRectangle(xpos, ypos+5, value * mw, 10);
+//    
+//    ypos += 50;
+//    ofSetColor(255);
+//    value = specComp;
+//    valueNorm = specCompNorm;
+//    strValue = "Spectral Complexity: " + ofToString(value, 2);
+//    ofDrawBitmapString(strValue, xpos, ypos);
+//    ofSetColor(ofColor::cyan);
+//    ofDrawRectangle(xpos, ypos+5, valueNorm * mw, 10);
+//    
+//    ypos += 50;
+//    ofSetColor(255);
+//    value = centroid;
+//    valueNorm = centroidNorm;
+//    strValue = "Centroid: " + ofToString(value, 2);
+//    ofDrawBitmapString(strValue, xpos, ypos);
+//    ofSetColor(ofColor::cyan);
+//    ofDrawRectangle(xpos, ypos+5, valueNorm * mw, 10);
+//    
+//    ypos += 50;
+//    ofSetColor(255);
+//    value = dissonance;
+//    strValue = "Dissonance: " + ofToString(value, 2);
+//    ofDrawBitmapString(strValue, xpos, ypos);
+//    ofSetColor(ofColor::cyan);
+//    ofDrawRectangle(xpos, ypos+5, value * mw, 10);
+//    
+//    ypos += 50;
+//    ofSetColor(255);
+//    value = rollOff;
+//    valueNorm = rollOffNorm;
+//    strValue = "Roll Off: " + ofToString(value, 2);
+//    ofDrawBitmapString(strValue, xpos, ypos);
+//    ofSetColor(ofColor::cyan);
+//    ofDrawRectangle(xpos, ypos+5, value * mw , 10);
+//    
+//    ypos += 50;
+//    ofSetColor(255);
+//    value = oddToEven;
+//    valueNorm = oddToEvenNorm;
+//    strValue = "Odd To Even Harmonic Energy Ratio: " + ofToString(value, 2);
+//    ofDrawBitmapString(strValue, xpos, ypos);
+//    ofSetColor(ofColor::cyan);
+//    ofDrawRectangle(xpos, ypos+5, valueNorm * mw, 10);
+//    
+//    ypos += 50;
+//    ofSetColor(255);
+//    value = strongPeak;
+//    valueNorm = strongPeakNorm;
+//    strValue = "Strong Peak: " + ofToString(value, 2);
+//    ofDrawBitmapString(strValue, xpos, ypos);
+//    ofSetColor(ofColor::cyan);
+//    ofDrawRectangle(xpos, ypos+5, value * mw, 10);
+//    
+//    ypos += 50;
+//    ofSetColor(255);
+//    value = strongDecay;
+//    valueNorm = strongDecayNorm;
+//    strValue = "Strong Decay: " + ofToString(value, 2);
+//    ofDrawBitmapString(strValue, xpos, ypos);
+//    ofSetColor(ofColor::cyan);
+//    ofDrawRectangle(xpos, ypos+5, valueNorm * mw, 10);
+//    
+//    ypos += 50;
+//    ofSetColor(255);
+//    value = isOnset;
+//    strValue = "Onsets: " + ofToString(value);
+//    ofDrawBitmapString(strValue, xpos, ypos);
+//    ofSetColor(ofColor::cyan);
+//    ofDrawRectangle(xpos, ypos+5, value * mw, 10);
+//    
+//    ofPopMatrix();
+//    
+//    //-Vector Values Algorithms:
+//    
+//    ofPushMatrix();
+//    
+//    ofTranslate(700, 0);
+//    
+//    int graphH = 75;
+//    int yoffset = graphH + 50;
+//    ypos = 30;
+
+
+//    ofSetColor(255);
+//    ofDrawBitmapString("Spectrum: ", 0, ypos);
+//    ofPushMatrix();
+//    ofTranslate(0, ypos);
+//    ofSetColor(ofColor::cyan);
+//    float bin_w = (float) mw / spectrum.size();
+//    for (int i = 0; i < spectrum.size(); i++){
+//        float scaledValue = ofMap(spectrum[i], DB_MIN, DB_MAX, 0.0, 1.0, true);//clamped value
+//        float bin_h = -1 * (scaledValue * graphH);
+//        ofDrawRectangle(i*bin_w, graphH, bin_w, bin_h);
+//    }
+//    ofPopMatrix();
+//    
+//    ypos += yoffset;
+//    ofSetColor(255);
+//    ofDrawBitmapString("Mel Bands: ", 0, ypos);
+//    ofPushMatrix();
+//    ofTranslate(0, ypos);
+//    ofSetColor(ofColor::cyan);
+//    bin_w = (float) mw / melBands.size();
+//    for (int i = 0; i < melBands.size(); i++){
+//        float scaledValue = ofMap(melBands[i], DB_MIN, DB_MAX, 0.0, 1.0, true);//clamped value
+//        float bin_h = -1 * (scaledValue * graphH);
+//        ofDrawRectangle(i*bin_w, graphH, bin_w, bin_h);
+//    }
+//    ofPopMatrix();
+//    
+//    ypos += yoffset;
+//    ofSetColor(255);
+//    ofDrawBitmapString("MFCC: ", 0, ypos);
+//    ofPushMatrix();
+//    ofTranslate(0, ypos);
+//    ofSetColor(ofColor::cyan);
+//    bin_w = (float) mw / mfcc.size();
+//    for (int i = 0; i < mfcc.size(); i++){
+//        float scaledValue = ofMap(mfcc[i], 0, MFCC_MAX_ESTIMATED_VALUE, 0.0, 1.0, true);//clamped value
+//        float bin_h = -1 * (scaledValue * graphH);
+//        ofDrawRectangle(i*bin_w, graphH, bin_w, bin_h);
+//    }
+//    ofPopMatrix();
+//    
+//    ypos += yoffset;
+//    ofSetColor(255);
+//    ofDrawBitmapString("HPCP: ", 0, ypos);
+//    ofPushMatrix();
+//    ofTranslate(0, ypos);
+//    ofSetColor(ofColor::cyan);
+//    bin_w = (float) mw / hpcp.size();
+//    for (int i = 0; i < hpcp.size(); i++){
+//        //float scaledValue = ofMap(hpcp[i], DB_MIN, DB_MAX, 0.0, 1.0, true);//clamped value
+//        float scaledValue = hpcp[i];
+//        float bin_h = -1 * (scaledValue * graphH);
+//        ofDrawRectangle(i*bin_w, graphH, bin_w, bin_h);
+//    }
+//    ofPopMatrix();
+//    
+//    ypos += yoffset;
+//    ofSetColor(255);
+//    ofDrawBitmapString("Tristimulus: ", 0, ypos);
+//    ofPushMatrix();
+//    ofTranslate(0, ypos);
+//    ofSetColor(ofColor::cyan);
+//    bin_w = (float) mw / tristimulus.size();
+//    for (int i = 0; i < tristimulus.size(); i++){
+//        //float scaledValue = ofMap(hpcp[i], DB_MIN, DB_MAX, 0.0, 1.0, true);//clamped value
+//        float scaledValue = tristimulus[i];
+//        float bin_h = -1 * (scaledValue * graphH);
+//        ofDrawRectangle(i*bin_w, graphH, bin_w, bin_h);
+//    }
+//    ofPopMatrix();
+    
+    // Other features
+    
+    ofPopMatrix();
+
+    ypos = yoffset + yoffset;
+    ofSetColor(255);
+    value = beat.bpm;
+    strValue = "BPM: " + ofToString(value);
+    ofDrawBitmapString(strValue, 20, ypos);
+    ofSetColor(ofColor::cyan);
     
     ypos += yoffset;
     ofSetColor(255);
-    ofDrawBitmapString("Mel Bands: ", 0, ypos);
-    ofPushMatrix();
-    ofTranslate(0, ypos);
+    value = onset.thresholdedNovelty;
+    strValue = "Onset Threshold Novelty: " + ofToString(value);
+    ofDrawBitmapString(strValue, 20, ypos);
     ofSetColor(ofColor::cyan);
-    bin_w = (float) mw / melBands.size();
-    for (int i = 0; i < melBands.size(); i++){
-        float scaledValue = ofMap(melBands[i], DB_MIN, DB_MAX, 0.0, 1.0, true);//clamped value
-        float bin_h = -1 * (scaledValue * graphH);
-        ofDrawRectangle(i*bin_w, graphH, bin_w, bin_h);
-    }
-    ofPopMatrix();
     
     ypos += yoffset;
     ofSetColor(255);
-    ofDrawBitmapString("MFCC: ", 0, ypos);
-    ofPushMatrix();
-    ofTranslate(0, ypos);
+    value = pitch.latestPitch;
+    strValue = "Midi Pitch: " + ofToString(value);
+    ofDrawBitmapString(strValue, 20, ypos);
     ofSetColor(ofColor::cyan);
-    bin_w = (float) mw / mfcc.size();
-    for (int i = 0; i < mfcc.size(); i++){
-        float scaledValue = ofMap(mfcc[i], 0, MFCC_MAX_ESTIMATED_VALUE, 0.0, 1.0, true);//clamped value
-        float bin_h = -1 * (scaledValue * graphH);
-        ofDrawRectangle(i*bin_w, graphH, bin_w, bin_h);
+    
+
+    ofPopMatrix();
+    ofDrawBitmapString("Polyphonic Pitch Vector: ", 350, 180);
+    int xOffset = 300;
+    int yOffset = 550;
+    for (int i = 0; i < polyphonic_pitch.size(); i++){
+        if ((i % 12) == 0) {
+            yOffset = 550;
+            xOffset += 50;
+        }
+        pair<int, string> keyNotePair = polyphonic_pitch[i];
+        int midiKey = keyNotePair.first;
+//        if (midiKey < 60) {
+//            yOffset -= 30;
+//            continue;
+//        }
+        string note = keyNotePair.second;
+        if (midiKey != -1) {
+            ofDrawBitmapString(std::to_string(midiKey) + note, xOffset, yOffset);
+        } else {
+            ofDrawBitmapString(" - ", xOffset, yOffset);
+        }
+        yOffset -= 30;
+
     }
-    ofPopMatrix();
     
-    ypos += yoffset;
-    ofSetColor(255);
-    ofDrawBitmapString("HPCP: ", 0, ypos);
-    ofPushMatrix();
-    ofTranslate(0, ypos);
-    ofSetColor(ofColor::cyan);
-    bin_w = (float) mw / hpcp.size();
-    for (int i = 0; i < hpcp.size(); i++){
-        //float scaledValue = ofMap(hpcp[i], DB_MIN, DB_MAX, 0.0, 1.0, true);//clamped value
-        float scaledValue = hpcp[i];
-        float bin_h = -1 * (scaledValue * graphH);
-        ofDrawRectangle(i*bin_w, graphH, bin_w, bin_h);
+    ofPopMatrix();
+    ofDrawBitmapString("Pitch: Condensed into One Octive", 350, 600);
+    xOffset = 300;
+    yOffset = 620;
+    for (int i = 0; i < polyphonic_pitch.size(); i++) {
+        pair<int, string> keyNotePair = polyphonic_pitch[i];
+        int midiKey = keyNotePair.first;
+//        if (midiKey < 60) {
+//            continue;
+//        }
+        string note = keyNotePair.second;
+        int mod = midiKey%12;
+        if (mod == 0) {
+            ofDrawBitmapString("C", xOffset + 0, yOffset);
+        } else {
+            ofDrawBitmapString("-", xOffset + 0, yOffset);
+        }
+        if (mod == 1) {
+            ofDrawBitmapString("C#", xOffset + 30, yOffset);
+        } else {
+            ofDrawBitmapString("-", xOffset + 30, yOffset);
+        }
+        if (mod == 2) {
+            ofDrawBitmapString("D", xOffset + 30*2, yOffset);
+        } else {
+            ofDrawBitmapString("-", xOffset + 30*2, yOffset);
+        }
+        if (mod == 3) {
+            ofDrawBitmapString("D#", xOffset + 30*3, yOffset);
+        } else {
+            ofDrawBitmapString("-", xOffset + 30*3, yOffset);
+        }
+        if (mod == 4) {
+            ofDrawBitmapString("E", xOffset + 30*4, yOffset);
+        } else {
+            ofDrawBitmapString("-", xOffset + 30*4, yOffset);
+        }
+        if (mod == 5) {
+            ofDrawBitmapString("F", xOffset + 30*5, yOffset);
+        } else {
+            ofDrawBitmapString("-", xOffset + 30*5, yOffset);
+        }
+        if (mod == 6) {
+            ofDrawBitmapString("F#", xOffset + 30*6, yOffset);
+        } else {
+            ofDrawBitmapString("-", xOffset + 30*6, yOffset);
+        }
+        if (mod == 7) {
+            ofDrawBitmapString("G", xOffset + 30*7, yOffset);
+        } else {
+            ofDrawBitmapString("-", xOffset + 30*7, yOffset);
+        }
+        if (mod == 8) {
+            ofDrawBitmapString("G#", xOffset + 30*8, yOffset);
+        } else {
+            ofDrawBitmapString("-", xOffset + 30*8, yOffset);
+        }
+        if (mod == 9) {
+            ofDrawBitmapString("A", xOffset + 30*9, yOffset);
+        } else {
+            ofDrawBitmapString("-", xOffset + 30*9, yOffset);
+        }
+        if (mod == 10) {
+            ofDrawBitmapString("Bb", xOffset + 30*10, yOffset);
+        } else {
+            ofDrawBitmapString("-", xOffset + 30*10, yOffset);
+        }
+        if (mod == 11) {
+            ofDrawBitmapString("B", xOffset + 30*11, yOffset);
+        } else {
+            ofDrawBitmapString("-", xOffset + 30*11, yOffset);
+        }
+      
+//        switch (mod){
+//            case 0:
+//                ofDrawBitmapString("C", xOffset + 0, yOffset);
+//                break;
+//            case 1:
+//                ofDrawBitmapString("C#", xOffset + 30, yOffset);
+//                break;
+//            case 2:
+//                ofDrawBitmapString("D", xOffset + 30*2, yOffset);
+//                break;
+//            case 3:
+//                ofDrawBitmapString("D#", xOffset + 30*3, yOffset);
+//                break;
+//            case 4:
+//                ofDrawBitmapString("E", xOffset + 30*4, yOffset);
+//                break;
+//            case 5:
+//                ofDrawBitmapString("F", xOffset + 30*5, yOffset);
+//                break;
+//            case 6:
+//                ofDrawBitmapString("F#", xOffset + 30*6, yOffset);
+//                break;
+//            case 7:
+//                ofDrawBitmapString("G", xOffset + 30*7, yOffset);
+//                break;
+//            case 8:
+//                ofDrawBitmapString("G#", xOffset + 30*8, yOffset);
+//                break;
+//            case 9:
+//                ofDrawBitmapString("A", xOffset + 30*9, yOffset);
+//                break;
+//            case 10:
+//                ofDrawBitmapString("Bb", xOffset + 30*10, yOffset);
+//                break;
+//            case 11:
+//                ofDrawBitmapString("B", xOffset + 30*11, yOffset);
+//                break;
+//            default:
+//                break;
+//                
+//        }
     }
-    ofPopMatrix();
-    
-    ypos += yoffset;
-    ofSetColor(255);
-    ofDrawBitmapString("Tristimulus: ", 0, ypos);
-    ofPushMatrix();
-    ofTranslate(0, ypos);
-    ofSetColor(ofColor::cyan);
-    bin_w = (float) mw / tristimulus.size();
-    for (int i = 0; i < tristimulus.size(); i++){
-        //float scaledValue = ofMap(hpcp[i], DB_MIN, DB_MAX, 0.0, 1.0, true);//clamped value
-        float scaledValue = tristimulus[i];
-        float bin_h = -1 * (scaledValue * graphH);
-        ofDrawRectangle(i*bin_w, graphH, bin_w, bin_h);
-    }
-    ofPopMatrix();
-    
-    
-    
-    ofPopMatrix();
+
+//
+//    cout<<"FB energy: "<<filterBank.getEnergies()<<endl;
+//    cout<<"FB leftB: "<<filterBank.getLeftBuffer()<<endl;
+//    cout<<"FB rightB: "<<filterBank.getRightBuffer()<<endl;
+//    cout<<"FB pitchDev: "<<filterBank.getPitchDev()<<endl;
+//    cout<<"FB smthEnergy: "<<filterBank.getSmthEnergies()<<endl;
     
     //-Gui & info:
     
@@ -997,11 +1256,13 @@ void ofApp::draw(){
     pitchConfidence = pitch.pitchConfidence;
     if (pitch.latestPitch) midiPitch = pitch.latestPitch;
     std::cout<<"Pitch:"<<midiPitch<<endl ;
-    
-    // update BPM
-    bpm = beat.bpm;
-    std::cout<<"BPM:"<<bpm<<endl ;
-*/
+    */
+//    // update BPM
+//    bpm = beat.bpm;
+//    std::cout<<"BPM:"<<bpm<<endl ;
+//    
+
+
 }
 //--------------------------------------------------------------
 void ofApp::audioIn(ofSoundBuffer &inBuffer){
@@ -1009,10 +1270,25 @@ void ofApp::audioIn(ofSoundBuffer &inBuffer){
     audioAnalyzer.analyze(inBuffer);
 
     //Analyze Input Buffer with ofxFilterbank
-    vector <float> temp;
+    vector<float> temp;
     temp = inBuffer.getBuffer(); // this spits out <vector &>
     float *p = &temp[0];
     filterBank.analyze(p);  //if the gui is working, then this is working, and the pointer works.
+    
+    // For Adam Scott's (Stark's?) BTracker !!
+    
+//    BTrack b;
+//    double d[temp.size()];
+//    for (int i = 0 ; i < temp.size(); i++)
+//    {
+//        d[i] = (double) temp[i];
+//    }
+//    b.processAudioFrame(d);
+//    if (b.beatDueInCurrentFrame())
+//    {
+//        // do something on the beat
+//        cout<<"1";
+//    }
     
     //Aubio
     

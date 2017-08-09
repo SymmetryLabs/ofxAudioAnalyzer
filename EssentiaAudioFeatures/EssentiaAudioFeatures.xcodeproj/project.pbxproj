@@ -96,6 +96,7 @@
 		2CAA5E65B0D72FE7B3C7EF11 /* tnt2vector.h */ = {isa = PBXFileReference; explicitFileType = sourcecode.c.h; fileEncoding = 30; name = tnt2vector.h; path = ../libs/essentia/include/essentia/utils/tnt/tnt2vector.h; sourceTree = SOURCE_ROOT; };
 		2EE3C26422275C7D402CCF25 /* audiodecodercoreaudio.cpp */ = {isa = PBXFileReference; explicitFileType = sourcecode.cpp.cpp; fileEncoding = 30; name = audiodecodercoreaudio.cpp; path = ../../ofxAudioDecoder/libs/src/audiodecodercoreaudio.cpp; sourceTree = SOURCE_ROOT; };
 		2FC993429795868DF149595E /* atomic.h */ = {isa = PBXFileReference; explicitFileType = sourcecode.c.h; fileEncoding = 30; name = atomic.h; path = ../libs/essentia/include/essentia/utils/atomic.h; sourceTree = SOURCE_ROOT; };
+		345E90A71EE8B65E00A4107C /* addons */ = {isa = PBXFileReference; lastKnownFileType = folder; name = addons; path = ../..; sourceTree = "<group>"; };
 		35F7217E175F756A4BC0846D /* sink.h */ = {isa = PBXFileReference; explicitFileType = sourcecode.c.h; fileEncoding = 30; name = sink.h; path = ../libs/essentia/include/essentia/streaming/sink.h; sourceTree = SOURCE_ROOT; };
 		393C9C8AE87812AC9B52CEFB /* algorithmfactory.h */ = {isa = PBXFileReference; explicitFileType = sourcecode.c.h; fileEncoding = 30; name = algorithmfactory.h; path = ../libs/essentia/include/essentia/algorithmfactory.h; sourceTree = SOURCE_ROOT; };
 		3CF13EFBE9601E8CB8223C62 /* jama_svd.h */ = {isa = PBXFileReference; explicitFileType = sourcecode.c.h; fileEncoding = 30; name = jama_svd.h; path = ../libs/essentia/include/essentia/utils/tnt/jama_svd.h; sourceTree = SOURCE_ROOT; };
@@ -656,6 +657,7 @@
 				BB4B014C10F69532006C3DED /* addons */,
 				6948EE371B920CB800B5AC1A /* local_addons */,
 				E4B69B5B0A3A1756003C02F2 /* EssentiaAudioFeaturesDebug.app */,
+				345E90A71EE8B65E00A4107C /* addons */,
 			);
 			sourceTree = "<group>";
 		};
@@ -865,7 +867,9 @@
 					../../../addons/ofxAudioDecoder/libs/include/apple,
 					../../../addons/ofxAudioDecoder/libs/src,
 					../../../addons/ofxAudioDecoder/src,
+					../../../addons/ofxOSXBoost/libs/boost/include,
 				);
+				LIBRARY_SEARCH_PATHS = ../../../addons/ofxOSXBoost/libs/boost/lib/osx;
 				MACOSX_DEPLOYMENT_TARGET = 10.8;
 				ONLY_ACTIVE_ARCH = YES;
 				OTHER_CPLUSPLUSFLAGS = (
@@ -930,7 +934,9 @@
 					../../../addons/ofxAudioDecoder/libs/include/apple,
 					../../../addons/ofxAudioDecoder/libs/src,
 					../../../addons/ofxAudioDecoder/src,
+					../../../addons/ofxOSXBoost/libs/boost/include,
 				);
+				LIBRARY_SEARCH_PATHS = ../../../addons/ofxOSXBoost/libs/boost/lib/osx;
 				MACOSX_DEPLOYMENT_TARGET = 10.8;
 				OTHER_CPLUSPLUSFLAGS = (
 					"-D__MACOSX_CORE__",
@@ -1002,6 +1008,7 @@
 				INFOPLIST_FILE = "openFrameworks-Info.plist";
 				INSTALL_PATH = /Applications;
 				LIBRARY_SEARCH_PATHS = "$(inherited)";
+				LIB_BTRACK = "\"../BTrack/src\"";
 				OTHER_LDFLAGS = (
 					"$(OF_CORE_FRAMEWORKS)",
 					"$(OF_CORE_LIBS)",
@@ -1068,6 +1075,7 @@
 				INFOPLIST_FILE = "openFrameworks-Info.plist";
 				INSTALL_PATH = /Applications;
 				LIBRARY_SEARCH_PATHS = "$(inherited)";
+				LIB_BTRACK = "\"../BTrack/src\"";
 				OTHER_LDFLAGS = (
 					"$(OF_CORE_FRAMEWORKS)",
 					"$(OF_CORE_LIBS)",

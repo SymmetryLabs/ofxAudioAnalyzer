@@ -57,6 +57,7 @@ void ofxAudioAnalyzerUnit::setup(int sampleRate, int bufferSize){
     oddToEven.init();
     strongPeak.init();
     strongDecay.init();
+    danceability.init();
     
     spectrum.initAndAssignSize((bufferSize/2)+1, 0.0);
     melBands.initAndAssignSize(MELBANDS_BANDS_NUM,0);
@@ -64,6 +65,8 @@ void ofxAudioAnalyzerUnit::setup(int sampleRate, int bufferSize){
     hpcp.initAndAssignSize(HPCP_SIZE, 0);
     pitchSalienceFunction.initAndAssignSize(PITCH_SALIENCE_FUNC_NUM, 0.0);
     tristimulus.initAndAssignSize(TRISTIMULUS_BANDS_NUM, 0.0);
+    BeatTrackDeg.initAndAssignSize(bufferSize, 0.0);
+    pitchPredMelodia.initAndAssignSize(87, 0.0);
     
     dcremoval.init();
     window.init();
@@ -176,7 +179,18 @@ void ofxAudioAnalyzerUnit::setup(int sampleRate, int bufferSize){
     tristimulus.algorithm = factory.create("Tristimulus");
     
     
-    #pragma mark -Connect algorithms
+    danceability.algorithm = factory.create("Danceability",
+                                            "maxTau", 8800,
+                                            "minTau", 310,
+                                            "sampleRate", 44100,
+                                            "tauMultiplier", 1.1);
+    
+    BeatTrackDeg.algorithm = factory.create("BeatTrackerDegara");
+    
+    pitchPredMelodia.algorithm = factory.create("PredominantPitchMelodia");
+   
+    
+#pragma mark -Connect algorithms
     
     //DCRemoval
     dcremoval.algorithm->input("signal").set(audioBuffer);
@@ -214,6 +228,17 @@ void ofxAudioAnalyzerUnit::setup(int sampleRate, int bufferSize){
     //Spectrum
     spectrum.algorithm->input("frame").set(window.realValues);
     spectrum.algorithm->output("spectrum").set(spectrum.realValues);
+    //BeatDetectorDegara
+    BeatTrackDeg.algorithm->input("signal").set(window.realValues);
+    BeatTrackDeg.algorithm->output("ticks").set(BeatTrackDeg.realValues);
+    //PitchPredMelodia
+    pitchPredMelodia.algorithm->input("signal").set(window.realValues);
+    pitchPredMelodia.algorithm->output("pitch").set(pitchPredMelodia.realValues);
+    
+    //Danceability
+    danceability.algorithm->input("signal").set(dcremoval.realValues);
+    danceability.algorithm->output("danceability").set(danceability.realValue);
+    
     //HFC
     hfc.algorithm->input("spectrum").set(spectrum.realValues);
     hfc.algorithm->output("hfc").set(hfc.realValue);
@@ -323,8 +348,11 @@ void ofxAudioAnalyzerUnit::analyze(const vector<float> & inBuffer){
     
     //spectrum must always be computed as it is neede for other algorithms
     spectrum.algorithm->compute();
+
+    
     
     hfc.compute();
+    danceability.compute();
     pitchSalience.compute();
     pitchDetect.compute();
     centroid.compute();
@@ -357,6 +385,7 @@ void ofxAudioAnalyzerUnit::analyze(const vector<float> & inBuffer){
     strongPeak.compute();
     
     tristimulus.compute();
+    
     if(dcremoval.realValues[0] != 0.0){
         //the strong decay is not defined for a zero signal
         strongDecay.compute();
@@ -372,6 +401,7 @@ void ofxAudioAnalyzerUnit::analyze(const vector<float> & inBuffer){
     power.castValueToFloat();
     pitchDetect.castValuesToFloat();
     pitchSalience.castValueToFloat();
+    danceability.castValueToFloat();
     
     melBands.castValuesToFloat(true);
     dct.castValuesToFloat(false);
@@ -392,6 +422,8 @@ void ofxAudioAnalyzerUnit::analyze(const vector<float> & inBuffer){
     
     onsets.castValuesToFloat();
     onsets.evaluate();
+    
+    BeatTrackDeg.castValuesToFloat(true); // this boolean indicates whether a feature should be logarithmically scaled
     
  
 }
@@ -415,6 +447,7 @@ void ofxAudioAnalyzerUnit::exit(){
     pitchDetect.deleteAlgorithm();
     pitchSalience.deleteAlgorithm();
     dissonance.deleteAlgorithm();
+    danceability.deleteAlgorithm();
     
     melBands.deleteAlgorithm();
     dct.deleteAlgorithm();
@@ -431,6 +464,7 @@ void ofxAudioAnalyzerUnit::exit(){
     onsets.onsetFlux.deleteAlgorithm();;
     pitchSalienceFunction.deleteAlgorithm();
     pitchSalienceFunctionPeaks.deleteAlgorithm();
+    BeatTrackDeg.deleteAlgorithm();
     
     essentia::shutdown();
     
@@ -517,6 +551,12 @@ void ofxAudioAnalyzerUnit::setActive(ofxAAAlgorithm algorithm, bool state){
         case TRISTIMULUS:
             tristimulus.setActive(state);
             break;
+        case BEAT_TRACK_DEG:
+            BeatTrackDeg.setActive(state);
+            break;
+        case DANCEABILITY:
+            danceability.setActive(state);
+            break;
             
         default:
             ofLogWarning()<<"ofxAudioAnalyzerUnit: wrong algorithm to set active.";
@@ -600,6 +640,12 @@ bool ofxAudioAnalyzerUnit::getIsActive(ofxAAAlgorithm algorithm){
             break;
         case TRISTIMULUS:
             return tristimulus.getIsActive();
+            break;
+        case BEAT_TRACK_DEG:
+            return BeatTrackDeg.getIsActive();
+            break;
+        case DANCEABILITY:
+            return danceability.getIsActive();
             break;
             
         default:
@@ -751,7 +797,19 @@ float ofxAudioAnalyzerUnit::getValue(ofxAAAlgorithm algorithm, float smooth, boo
                 strongDecay.getValue();
             }
             break;
-            
+        case DANCEABILITY:
+            if (normalized){
+                r = smooth ?
+                danceability.getSmoothedValueNormalized(smooth):
+                danceability.getValueNormalized();
+                cout<<"danceability"<<danceability.getValueNormalized();
+            }else{
+                r = smooth ?
+                danceability.getSmoothedValue(smooth):
+                danceability.getValue();
+                cout<<"danceability: "<<danceability.getValue();
+            }
+            break;
             
         default:
             ofLogWarning()<<"ofxAudioAnalyzerUnit: wrong algorithm for getting value.";
@@ -792,6 +850,10 @@ vector<float>& ofxAudioAnalyzerUnit::getValues(ofxAAAlgorithm algorithm, float s
         case TRISTIMULUS:
             return smooth ? tristimulus.getSmoothedValues(smooth) : tristimulus.getValues();
             break;
+            
+        case BEAT_TRACK_DEG:
+//            cout<<BeatTrackDeg.getValues();
+            return smooth ? BeatTrackDeg.getSmoothedValues(smooth) : BeatTrackDeg.getValues();
             
         default:
             ofLogError()<<"ofxAudioAnalyzerUnit: wrong algorithm for getting values.";

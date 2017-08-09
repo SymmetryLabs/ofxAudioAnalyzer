@@ -6,8 +6,11 @@
 #include "ofSoundPlayerExtended.h"
 #include "ofxGui.h"
 
-#include "ofxFilterbank.h"      //for filterbank
-#include "ofxAubio.h"           //for aubio
+#include "ofxFilterbank.h"                  //for filterbank
+#include "ofxAubio.h"                       //for aubio
+//#include "../BTrack/src/BTrack.h"           //for BTrack beat detection
+
+#include "../../ofxBeat/src/ofxBeat.h"
 
 //---- #defs for filterbank
 #define BANDWIDTH  1.0
@@ -51,6 +54,8 @@ class ofApp : public ofBaseApp{
         ofSoundStream soundStream;
         ofxAudioAnalyzer audioAnalyzer;
     
+//        extern BTrack b;
+    
         float rms_l, rms_r;
         float smooth;
         float rms;
@@ -82,6 +87,7 @@ class ofApp : public ofBaseApp{
         vector<float> mfcc;
         vector<float> hpcp;
         vector<float> tristimulus;
+        vector<float> beatTrackDeg;
     
         bool isOnset;
     
@@ -93,6 +99,7 @@ class ofApp : public ofBaseApp{
     
         ofxFilterbank filterBank;
         ofxFloatSlider smoothing;
+        vector<pair<int, string>> polyphonic_pitch;
     
         //-----aubio
     
